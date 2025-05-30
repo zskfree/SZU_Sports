@@ -18,9 +18,9 @@
 ## 使用方法
 
 1. **安装油猴扩展**（Tampermonkey等）
-2. **导入本脚本** [`SZU_Sports.js`](./SZU_Sports.js)
+2. **直接点击安装脚本**：[点此安装 SZU_Sports 油猴脚本](https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票)
 3. 打开深圳大学场馆预约页面（`ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy`）
-4. 页面右侧出现浮动抢票按钮，点击即可进行相关配置与操作
+4. 页面右侧会出现浮动抢票按钮，点击即可进行相关配置与操作
 
 ## 参数配置说明
 
@@ -40,4 +40,4 @@
 
 ---
 
-项目地址：[#深圳大学#羽毛球#羽毛球预约#抢票#体育馆预约](https://github.com/zskfree/SZU_Sports)
+项目地址：[https://github.com/zskfree/SZU_Sports](https://github.com/zskfree/SZU_Sports)
