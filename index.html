@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SZU Sports 自动抢票助手</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 480px;
+            margin: 60px auto 0 auto;
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.20);
+            padding: 32px 26px;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2.1em;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.18);
+        }
+        .desc {
+            font-size: 1.08em;
+            margin: 18px 0 32px 0;
+            color: #dedede;
+        }
+        .btn-main {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 14px 48px;
+            font-size: 1.15em;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 18px 0 0 0;
+            box-shadow: 0 4px 16px rgba(76,175,80,0.08);
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-main:hover {
+            background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
+            transform: translateY(-2px) scale(1.04);
+        }
+        .feature-list {
+            text-align: left;
+            margin: 30px auto 0 auto;
+            max-width: 350px;
+            color: #ebebfa;
+        }
+        .feature-list li {
+            margin: 10px 0;
+            font-size: 1em;
+        }
+        .footer {
+            text-align: center;
+            margin: 44px 0 10px 0;
+            color: #b3b3c6;
+            font-size: 0.92em;
+            opacity: 0.8;
+        }
+        @media (max-width: 520px) {
+            .container {
+                margin: 20px 4px;
+                padding: 18px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎾 SZU Sports 自动抢票助手</h1>
+        <div class="desc">
+            深圳大学体育场馆自动抢票脚本，<br>
+            支持个性化预约、快捷键操作和状态日志，<br>
+            助你轻松预约运动场馆，操作简单高效。
+        </div>
+        <button class="btn-main" onclick="window.location.href='https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy'">
+            前往预约页面
+        </button>
+        <ul class="feature-list">
+            <li>⚡ 自动预约指定日期、项目、时间段</li>
+            <li>👤 支持自定义用户信息与参数配置</li>
+            <li>📅 预约日期、校区、时段灵活选择</li>
+            <li>🔄 多次自动重试，提升预约成功率</li>
+            <li>⌨️ 快捷键控制面板显示/隐藏与操作</li>
+            <li>📝 实时状态日志反馈与进度跟踪</li>
+        </ul>
+        <div class="footer">
+            项目地址：<a href="https://github.com/zskfree/SZU_Sports" target="_blank" style="color:#fff;text-decoration:underline;">GitHub - zskfree/SZU_Sports</a><br>
+            Made by zskfree | 2025
+        </div>
+    </div>
+</body>
+</html>
