@@ -32,9 +32,10 @@
             margin: 18px 0 32px 0;
             color: #dedede;
         }
-        .btn-main {
+        .btn-link {
+            display: inline-block;
             background: linear-gradient(45deg, #4caf50, #45a049);
-            color: #fff;
+            color: #fff !important;
             border: none;
             border-radius: 7px;
             padding: 14px 48px;
@@ -44,14 +45,16 @@
             margin: 18px 0 0 0;
             box-shadow: 0 4px 16px rgba(76,175,80,0.08);
             transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
         }
-        .btn-main:hover {
+        .btn-link:hover {
             background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
             transform: translateY(-2px) scale(1.04);
         }
-        .btn-secondary {
+        .btn-secondary-link {
+            display: inline-block;
             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
+            color: #fff !important;
             border: none;
             border-radius: 7px;
             padding: 12px 36px;
@@ -61,8 +64,9 @@
             margin: 16px 0 0 0;
             box-shadow: 0 4px 16px rgba(102,126,234,0.09);
             transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
         }
-        .btn-secondary:hover {
+        .btn-secondary-link:hover {
             background: linear-gradient(45deg, #5a5ae6 60%, #764ba2 100%);
             transform: translateY(-2px) scale(1.03);
         }
@@ -111,13 +115,13 @@
             支持个性化预约、快捷键操作和状态日志，<br>
             助你轻松预约运动场馆，操作简单高效。
         </div>
-        <button class="btn-main" onclick="window.location.href='https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue'">
+        <a class="btn-link" href="https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue" target="_blank" rel="noopener">
             前往深大场馆预约页面
-        </button>
+        </a>
         <br>
-        <button class="btn-secondary" onclick="window.open('https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票', '_blank')">
+        <a class="btn-secondary-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank" rel="noopener">
             油猴脚本安装页面
-        </button>
+        </a>
         <div class="usage">
             <strong>使用方式：</strong><br>
             1. <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">安装 Tampermonkey（油猴插件）</a><br>
