@@ -49,6 +49,35 @@
             background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
             transform: translateY(-2px) scale(1.04);
         }
+        .btn-secondary {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 12px 36px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 16px 0 0 0;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.09);
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #5a5ae6 60%, #764ba2 100%);
+            transform: translateY(-2px) scale(1.03);
+        }
+        .usage {
+            background: rgba(0,0,0,0.10);
+            border-radius: 9px;
+            padding: 12px 18px;
+            margin: 26px 0 16px 0;
+            color: #f4f4fa;
+            font-size: 1em;
+            text-align: left;
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
+        }
         .feature-list {
             text-align: left;
             margin: 30px auto 0 auto;
@@ -85,6 +114,17 @@
         <button class="btn-main" onclick="window.location.href='https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy'">
             前往预约页面
         </button>
+        <br>
+        <button class="btn-secondary" onclick="window.open('https://github.com/zskfree/SZU_Sports/raw/main/SZU_Sports.user.js', '_blank')">
+            油猴脚本下载
+        </button>
+        <div class="usage">
+            <strong>使用方式：</strong><br>
+            1. 浏览器安装 <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">Tampermonkey（油猴插件）</a><br>
+            2. 点击上方“油猴脚本下载”按钮，安装本项目脚本<br>
+            3. 进入深大场馆预约页面即可自动启用助手<br>
+            4. 配置参数后，按 <b>Ctrl+Shift+S</b> 开始/停止抢票，<b>Ctrl+Shift+H</b> 显示/隐藏面板
+        </div>
         <ul class="feature-list">
             <li>⚡ 自动预约指定日期、项目、时间段</li>
             <li>👤 支持自定义用户信息与参数配置</li>
