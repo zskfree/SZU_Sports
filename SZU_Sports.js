@@ -92,10 +92,15 @@
     let retryCount = 0;
     let startTime = null;
     let successfulBookings = [];
-    const maxBookings = 2;
     let controlPanel = null;
     let floatingButton = null;
     let isPanelVisible = loadPanelState();
+
+    // 获取动态最大预约数量
+    function getMaxBookings() {
+        const selectedTimeSlots = CONFIG.PREFERRED_TIMES.length;
+        return Math.min(selectedTimeSlots, 2); // 最多2个，但不超过选择的时间段数量
+    }
  
     // 创建浮动按钮
     function createFloatingButton() {
@@ -385,7 +390,7 @@
                     超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s
                 </div>
                 <div style="font-size: 13px; margin-top: 5px;">
-                    🎯 进度: <span id="booking-progress">0/${maxBookings} 个时段</span>
+                    🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span>
                 </div>
             </div>
  
@@ -564,6 +569,8 @@
         };
  
         saveConfig(CONFIG);
+        // 更新进度显示
+        updateProgress();
     }
  
     // 更新显示配置
@@ -628,9 +635,10 @@
  
     // 更新预约进度
     function updateProgress() {
+        const currentMaxBookings = getMaxBookings();
         const progressElement = document.getElementById('booking-progress');
         if (progressElement) {
-            progressElement.textContent = `${successfulBookings.length}/${maxBookings} 个时段`;
+            progressElement.textContent = `${successfulBookings.length}/${currentMaxBookings} 个时段`;
         }
     }
  
@@ -828,6 +836,7 @@
         isRunning = true;
         retryCount = 0;
         startTime = new Date();
+        const currentMaxBookings = getMaxBookings(); // 获取当前最大预约数量
  
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
@@ -837,16 +846,17 @@
  
         addLog(`🚀 开始自动抢票！`, 'success');
         addLog(`📊 配置: ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${CONFIG.TARGET_DATE}`, 'info');
+        addLog(`🎯 目标: 预约 ${currentMaxBookings} 个时间段`, 'info');
  
         try {
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
-                if (successfulBookings.length >= maxBookings) {
-                    addLog(`🎊 恭喜！已成功预约 ${maxBookings} 个时间段！`, 'success');
+                if (successfulBookings.length >= currentMaxBookings) {
+                    addLog(`🎊 恭喜！已成功预约 ${currentMaxBookings} 个时间段！`, 'success');
                     break;
                 }
  
                 retryCount++;
-                addLog(`🔍 第 ${retryCount} 次查询 (${successfulBookings.length}/${maxBookings})`);
+                addLog(`🔍 第 ${retryCount} 次查询 (${successfulBookings.length}/${currentMaxBookings})`);
  
                 const availableSlots = await getAvailableSlots();
  
@@ -868,7 +878,7 @@
                         });
  
                         for (const timeSlot of CONFIG.PREFERRED_TIMES) {
-                            if (successfulBookings.length >= maxBookings) break;
+                            if (successfulBookings.length >= currentMaxBookings) break;
                             if (bookedTimeSlots.includes(timeSlot)) continue;
  
                             if (timeSlotGroups[timeSlot]) {
@@ -880,7 +890,7 @@
  
                                 if (result === true) {
                                     addLog(`✨ 时间段 ${timeSlot} 预约成功！`, 'success');
-                                    if (successfulBookings.length < maxBookings) {
+                                    if (successfulBookings.length < currentMaxBookings) {
                                         await new Promise(resolve => setTimeout(resolve, 1000));
                                     }
                                 } else if (result === 'limit_reached') {
@@ -893,7 +903,7 @@
                     }
                 }
  
-                if (successfulBookings.length < maxBookings && isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
+                if (successfulBookings.length < currentMaxBookings && isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
                     addLog(`⏳ 等待 ${CONFIG.RETRY_INTERVAL} 秒后重试...`);
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_INTERVAL * 1000));
                 }
@@ -908,23 +918,26 @@
  
     // 停止抢票
     function stopBooking() {
+        if (!isRunning) return; // 防止重复调用
+
         isRunning = false;
- 
+        const currentMaxBookings = getMaxBookings();
+
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.textContent = '🚀 开始抢票';
             startBtn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
         }
- 
+
         if (successfulBookings.length > 0) {
-            addLog(`🎉 抢票结束！成功预约 ${successfulBookings.length}/${maxBookings} 个时段`, 'success');
+            addLog(`🎉 抢票结束！成功预约 ${successfulBookings.length}/${currentMaxBookings} 个时段`, 'success');
             successfulBookings.forEach((booking, index) => {
                 addLog(`${index + 1}. ${booking.slotName} (${booking.dhid})`, 'success');
             });
         } else {
             addLog(`😢 很遗憾，没有成功预约到任何时段`, 'warning');
         }
- 
+
         const elapsed = startTime ? Math.round((new Date() - startTime) / 1000) : 0;
         addLog(`📊 运行时间: ${elapsed}秒, 查询次数: ${retryCount}`, 'info');
     }
