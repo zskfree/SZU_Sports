@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.7
 // @description  深圳大学体育场馆自动预约脚本 - 支持面板隐藏显示
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -10,6 +10,8 @@
 // @grant        GM_getValue
 // @run-at       document-end
 // @license      MIT
+// @downloadURL https://update.greasyfork.org/scripts/537386/%E6%B7%B1%E5%9C%B3%E5%A4%A7%E5%AD%A6%E4%BD%93%E8%82%B2%E5%9C%BA%E9%A6%86%E8%87%AA%E5%8A%A8%E6%8A%A2%E7%A5%A8.user.js
+// @updateURL https://update.greasyfork.org/scripts/537386/%E6%B7%B1%E5%9C%B3%E5%A4%A7%E5%AD%A6%E4%BD%93%E8%82%B2%E5%9C%BA%E9%A6%86%E8%87%AA%E5%8A%A8%E6%8A%A2%E7%A5%A8.meta.js
 // ==/UserScript==
 
 (function () {
@@ -40,6 +42,12 @@
         "20:00-21:00", "21:00-22:00"
     ];
 
+    // 场馆代码映射
+    const VENUE_CODES = {
+        "至畅": "104",
+        "至快": "111"
+    };
+
     // 默认配置
     const DEFAULT_CONFIG = {
         USER_INFO: {
@@ -49,6 +57,7 @@
         TARGET_DATE: getTomorrowDate(),
         SPORT: "羽毛球",
         CAMPUS: "丽湖",
+        PREFERRED_VENUE: "至畅", // 新增：优先场馆选择
         PREFERRED_TIMES: ["20:00-21:00", "21:00-22:00"],
         RETRY_INTERVAL: 1,
         MAX_RETRY_TIMES: 200,
@@ -154,199 +163,193 @@
         const panel = document.createElement('div');
         panel.id = 'auto-booking-panel';
         panel.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 90px;
-            width: 400px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 10000;
-            font-family: 'Microsoft YaHei', sans-serif;
-            color: white;
-            border: 2px solid rgba(255,255,255,0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            transform: translateX(0);
-        `;
+        position: fixed;
+        top: 20px;
+        right: 90px;
+        width: 400px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        z-index: 10000;
+        font-family: 'Microsoft YaHei', sans-serif;
+        color: white;
+        border: 2px solid rgba(255,255,255,0.2);
+        max-height: 90vh;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+        transform: translateX(0);
+    `;
 
         panel.innerHTML = `
-            <div style="margin-bottom: 15px; text-align: center; position: relative;">
-                <h3 style="margin: 0; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                    🎾 自动抢票助手 v1.0.0
-                </h3>
-                <button id="close-panel" style="
-                    position: absolute;
-                    top: -5px;
-                    right: -5px;
-                    background: rgba(255,255,255,0.2);
+        <div style="margin-bottom: 15px; text-align: center; position: relative;">
+            <h3 style="margin: 0; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                🎾 自动抢票助手 v1.0.7
+            </h3>
+            <button id="close-panel" style="
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            " title="隐藏面板">×</button>
+            <button id="toggle-config" style="
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 5px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-top: 5px;
+                font-size: 12px;
+            ">⚙️ 配置设置</button>
+        </div>
+
+        <!-- 配置区域 -->
+        <div id="config-area" style="
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: block;
+        ">
+            <!-- 用户信息 -->
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">👤 学号/工号:</label>
+                <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="
+                    width: 100%;
+                    padding: 6px;
                     border: none;
-                    color: white;
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    font-size: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                " title="隐藏面板">×</button>
-                <button id="toggle-config" style="
-                    background: rgba(255,255,255,0.2);
-                    border: 1px solid rgba(255,255,255,0.3);
-                    color: white;
-                    padding: 5px 10px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 5px;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
                     font-size: 12px;
-                ">⚙️ 配置设置</button>
+                    box-sizing: border-box;
+                ">
             </div>
- 
-            <!-- 配置区域 -->
-            <div id="config-area" style="
-                background: rgba(255,255,255,0.1);
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 15px;
-                display: block;
-            ">
-                <!-- 用户信息 -->
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">👤 学号/工号:</label>
-                    <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
-                </div>
- 
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">📝 姓名:</label>
-                    <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
-                </div>
- 
-                <!-- 预约设置 -->
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">📅 预约日期:</label>
-                    <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
-                </div>
- 
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏟️ 运动项目:</label>
-                    <select id="sport-type" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
-                        ${Object.keys(SPORT_CODES).map(sport =>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">📝 姓名:</label>
+                <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="
+                    width: 100%;
+                    padding: 6px;
+                    border: none;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
+                ">
+            </div>
+
+            <!-- 预约设置 -->
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">📅 预约日期:</label>
+                <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="
+                    width: 100%;
+                    padding: 6px;
+                    border: none;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
+                ">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏟️ 运动项目:</label>
+                <select id="sport-type" style="
+                    width: 100%;
+                    padding: 6px;
+                    border: none;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
+                ">
+                    ${Object.keys(SPORT_CODES).map(sport =>
             `<option value="${sport}" ${sport === CONFIG.SPORT ? 'selected' : ''}>${sport}</option>`
         ).join('')}
-                    </select>
-                </div>
- 
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏫 校区:</label>
-                    <select id="campus" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
-                        ${Object.keys(CAMPUS_CODES).map(campus =>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏫 校区:</label>
+                <select id="campus" style="
+                    width: 100%;
+                    padding: 6px;
+                    border: none;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
+                ">
+                    ${Object.keys(CAMPUS_CODES).map(campus =>
             `<option value="${campus}" ${campus === CONFIG.CAMPUS ? 'selected' : ''}>${campus}</option>`
         ).join('')}
-                    </select>
+                </select>
+            </div>
+
+            <!-- 羽毛球场馆选择 -->
+            <div id="venue-selection" style="margin-bottom: 12px; display: ${CONFIG.SPORT === '羽毛球' ? 'block' : 'none'};">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏟️ 优先场馆:</label>
+                <select id="preferred-venue" style="
+                    width: 100%;
+                    padding: 6px;
+                    border: none;
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
+                ">
+                    <option value="至畅" ${CONFIG.PREFERRED_VENUE === '至畅' ? 'selected' : ''}>🏆 至畅体育馆</option>
+                    <option value="至快" ${CONFIG.PREFERRED_VENUE === '至快' ? 'selected' : ''}>⚡ 至快体育馆</option>
+                    <option value="全部" ${CONFIG.PREFERRED_VENUE === '全部' ? 'selected' : ''}>🔄 全部场馆</option>
+                </select>
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 2px;">
+                    💡 选择"全部"将按至畅>至快的顺序预约
                 </div>
- 
-                <!-- 时间段选择 -->
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 优先时间段 (按优先级排序):</label>
-                    <div id="time-slots-container" style="
-                        max-height: 100px;
-                        overflow-y: auto;
-                        background: rgba(255,255,255,0.1);
-                        border-radius: 4px;
-                        padding: 5px;
-                    ">
-                        ${TIME_SLOTS.map(slot => `
-                            <label style="display: block; font-size: 11px; margin: 2px 0; cursor: pointer;">
-                                <input type="checkbox" value="${slot}"
-                                    ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''}
-                                    style="margin-right: 5px;">
-                                ${slot}
-                            </label>
-                        `).join('')}
-                    </div>
+            </div>
+
+            <!-- 时间段选择 -->
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 优先时间段 (按优先级排序):</label>
+                <div id="time-slots-container" style="
+                    max-height: 100px;
+                    overflow-y: auto;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 4px;
+                    padding: 5px;
+                ">
+                    ${TIME_SLOTS.map(slot => `
+                        <label style="display: block; font-size: 11px; margin: 2px 0; cursor: pointer;">
+                            <input type="checkbox" value="${slot}"
+                                ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''}
+                                style="margin-right: 5px;">
+                            ${slot}
+                        </label>
+                    `).join('')}
                 </div>
- 
-                <!-- 运行参数 -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                    <div>
-                        <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏱️ 查询间隔(秒):</label>
-                        <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="
-                            width: 100%;
-                            padding: 6px;
-                            border: none;
-                            border-radius: 4px;
-                            background: rgba(255,255,255,0.9);
-                            color: #333;
-                            font-size: 12px;
-                            box-sizing: border-box;
-                        ">
-                    </div>
-                    <div>
-                        <label style="font-size: 12px; display: block; margin-bottom: 3px;">🔄 最大重试:</label>
-                        <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="
-                            width: 100%;
-                            padding: 6px;
-                            border: none;
-                            border-radius: 4px;
-                            background: rgba(255,255,255,0.9);
-                            color: #333;
-                            font-size: 12px;
-                            box-sizing: border-box;
-                        ">
-                    </div>
-                </div>
- 
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 请求超时(秒):</label>
-                    <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="
+            </div>
+
+            <!-- 运行参数 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏱️ 查询间隔(秒):</label>
+                    <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="
                         width: 100%;
                         padding: 6px;
                         border: none;
@@ -357,79 +360,110 @@
                         box-sizing: border-box;
                     ">
                 </div>
- 
-                <button id="save-config" style="
-                    width: 100%;
-                    padding: 8px;
-                    background: linear-gradient(45deg, #4caf50, #45a049);
-                    border: none;
-                    border-radius: 6px;
-                    color: white;
-                    font-size: 14px;
-                    cursor: pointer;
-                    margin-bottom: 10px;
-                ">💾 保存配置</button>
-            </div>
- 
-            <!-- 当前配置显示 -->
-            <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <div style="font-size: 13px; margin-bottom: 5px;">
-                    👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span>
-                </div>
-                <div style="font-size: 13px; margin-bottom: 5px;">
-                    📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> |
-                    🏟️ <span id="display-sport">${CONFIG.SPORT}</span> |
-                    🏫 <span id="display-campus">${CONFIG.CAMPUS}</span>
-                </div>
-                <div style="font-size: 13px; margin-bottom: 5px;">
-                    ⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span>
-                </div>
-                <div style="font-size: 13px;">
-                    ⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s |
-                    重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> |
-                    超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s
-                </div>
-                <div style="font-size: 13px; margin-top: 5px;">
-                    🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span>
+                <div>
+                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">🔄 最大重试:</label>
+                    <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="
+                        width: 100%;
+                        padding: 6px;
+                        border: none;
+                        border-radius: 4px;
+                        background: rgba(255,255,255,0.9);
+                        color: #333;
+                        font-size: 12px;
+                        box-sizing: border-box;
+                    ">
                 </div>
             </div>
- 
-            <!-- 控制按钮 -->
-            <div style="margin-bottom: 15px;">
-                <button id="start-btn" style="
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 请求超时(秒):</label>
+                <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="
                     width: 100%;
-                    padding: 12px;
-                    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+                    padding: 6px;
                     border: none;
-                    border-radius: 8px;
-                    color: white;
-                    font-size: 16px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    font-size: 12px;
+                    box-sizing: border-box;
                 ">
-                    🚀 开始抢票
-                </button>
             </div>
- 
-            <!-- 状态日志 -->
-            <div id="status-area" style="
-                background: rgba(0,0,0,0.2);
-                padding: 10px;
+
+            <button id="save-config" style="
+                width: 100%;
+                padding: 8px;
+                background: linear-gradient(45deg, #4caf50, #45a049);
+                border: none;
+                border-radius: 6px;
+                color: white;
+                font-size: 14px;
+                cursor: pointer;
+                margin-bottom: 10px;
+            ">💾 保存配置</button>
+        </div>
+
+        <!-- 当前配置显示 -->
+        <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="font-size: 13px; margin-bottom: 5px;">
+                👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span>
+            </div>
+            <div style="font-size: 13px; margin-bottom: 5px;">
+                📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> |
+                🏟️ <span id="display-sport">${CONFIG.SPORT}</span> |
+                🏫 <span id="display-campus">${CONFIG.CAMPUS}</span>
+            </div>
+            <div id="venue-display" style="font-size: 13px; margin-bottom: 5px; display: ${CONFIG.SPORT === '羽毛球' ? 'block' : 'none'};">
+                🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE || '至畅'}</span>
+            </div>
+            <div style="font-size: 13px; margin-bottom: 5px;">
+                ⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span>
+            </div>
+            <div style="font-size: 13px;">
+                ⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s |
+                重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> |
+                超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s
+            </div>
+            <div style="font-size: 13px; margin-top: 5px;">
+                🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span>
+            </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div style="margin-bottom: 15px;">
+            <button id="start-btn" style="
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+                border: none;
                 border-radius: 8px;
-                font-size: 12px;
-                max-height: 200px;
-                overflow-y: auto;
-                border: 1px solid rgba(255,255,255,0.1);
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             ">
-                <div style="color: #ffd700;">🔧 等待开始...</div>
-            </div>
- 
-            <div style="margin-top: 15px; text-align: center; font-size: 11px; opacity: 0.8;">
-                ⚡ 快捷键: Ctrl+Shift+S 开始/停止 | Ctrl+Shift+H 显示/隐藏面板
-            </div>
-        `;
+                🚀 开始抢票
+            </button>
+        </div>
+
+        <!-- 状态日志 -->
+        <div id="status-area" style="
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        ">
+            <div style="color: #ffd700;">🔧 等待开始...</div>
+        </div>
+
+        <div style="margin-top: 15px; text-align: center; font-size: 11px; opacity: 0.8;">
+            ⚡ 快捷键: Ctrl+Shift+S 开始/停止 | Ctrl+Shift+H 显示/隐藏面板
+        </div>
+    `;
 
         document.body.appendChild(panel);
 
@@ -502,6 +536,21 @@
             }
         });
 
+        // 运动项目变化时显示/隐藏场馆选择
+        document.getElementById('sport-type').addEventListener('change', () => {
+            const sportType = document.getElementById('sport-type').value;
+            const venueSelection = document.getElementById('venue-selection');
+            const venueDisplay = document.getElementById('venue-display');
+
+            if (sportType === '羽毛球') {
+                venueSelection.style.display = 'block';
+                venueDisplay.style.display = 'block';
+            } else {
+                venueSelection.style.display = 'none';
+                venueDisplay.style.display = 'none';
+            }
+        });
+
         // 保存配置
         document.getElementById('save-config').addEventListener('click', () => {
             updateConfigFromUI();
@@ -561,6 +610,7 @@
             TARGET_DATE: document.getElementById('target-date').value,
             SPORT: document.getElementById('sport-type').value,
             CAMPUS: document.getElementById('campus').value,
+            PREFERRED_VENUE: document.getElementById('preferred-venue')?.value || '至畅', // 新增场馆选择
             PREFERRED_TIMES: selectedTimes,
             RETRY_INTERVAL: parseInt(document.getElementById('retry-interval').value),
             MAX_RETRY_TIMES: parseInt(document.getElementById('max-retry').value),
@@ -579,6 +629,13 @@
         document.getElementById('display-date').textContent = CONFIG.TARGET_DATE;
         document.getElementById('display-sport').textContent = CONFIG.SPORT;
         document.getElementById('display-campus').textContent = CONFIG.CAMPUS;
+
+        // 更新场馆显示
+        const venueDisplayElement = document.getElementById('display-venue');
+        if (venueDisplayElement) {
+            venueDisplayElement.textContent = CONFIG.PREFERRED_VENUE || '至畅';
+        }
+
         document.getElementById('display-times').textContent = CONFIG.PREFERRED_TIMES.join(', ');
         document.getElementById('display-interval').textContent = CONFIG.RETRY_INTERVAL;
         document.getElementById('display-retry').textContent = CONFIG.MAX_RETRY_TIMES;
@@ -599,6 +656,21 @@
             addLog('❌ 请选择预约日期', 'error');
             return false;
         }
+
+        // 新增：验证日期不能是过去
+        const targetDate = new Date(CONFIG.TARGET_DATE);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (targetDate < today) {
+            addLog('❌ 预约日期不能是过去的日期', 'error');
+            return false;
+        }
+
+        // 新增：验证学号格式
+        if (!/^\d{8,12}$/.test(CONFIG.USER_INFO.YYRGH)) {
+            addLog('⚠️ 学号格式可能不正确，请检查', 'warning');
+        }
+
         return true;
     }
 
@@ -694,11 +766,45 @@
                         if (!room.disabled && room.text === "可预约") {
                             const venueName = room.CDMC || '';
 
+                            // 根据场馆选择过滤
+                            if (CONFIG.SPORT === "羽毛球" && CONFIG.PREFERRED_VENUE !== "全部") {
+                                if (CONFIG.PREFERRED_VENUE === "至畅" && !venueName.includes("至畅")) {
+                                    continue; // 跳过非至畅场馆
+                                }
+                                if (CONFIG.PREFERRED_VENUE === "至快" && !venueName.includes("至快")) {
+                                    continue; // 跳过非至快场馆
+                                }
+                            }
+
                             let venuePriority = 2;
-                            if (venueName.includes("至快")) {
-                                venuePriority = 0;
-                            } else if (venueName.includes("至畅")) {
-                                venuePriority = 1;
+                            let courtPriority = 0; // 场地优先级，数字越小优先级越高
+
+                            // 场馆优先级判断
+                            if (venueName.includes("至畅")) {
+                                venuePriority = 0;  // 至畅最优先
+
+                                // 丽湖校区至畅羽毛球场优先级设置
+                                if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球") {
+                                    // 匹配"5号场"或"五号场"
+                                    if (venueName.includes("5号场") || venueName.includes("五号场")) {
+                                        courtPriority = -2; // 5号场地最优先
+                                    }
+                                    // 匹配"10号场"或"十号场"
+                                    else if (venueName.includes("10号场") || venueName.includes("十号场")) {
+                                        courtPriority = -1; // 10号场地次优先
+                                    }
+                                    // 匹配"1号场"或"一号场"
+                                    else if (venueName.match(/[^0-9]1号场|^1号场|一号场/)) {
+                                        courtPriority = 2; // 1号场地最低优先级
+                                    }
+                                    // 匹配"6号场"或"六号场"
+                                    else if (venueName.includes("6号场") || venueName.includes("六号场")) {
+                                        courtPriority = 2; // 6号场地最低优先级
+                                    }
+                                    // 其他至畅场地为默认优先级 0
+                                }
+                            } else if (venueName.includes("至快")) {
+                                venuePriority = 1;  // 至快次之
                             }
 
                             const slotInfo = {
@@ -710,7 +816,8 @@
                                 venueName: venueName,
                                 venueCode: room.CGBM || '',
                                 priority: CONFIG.PREFERRED_TIMES.indexOf(timeSlot),
-                                venuePriority: venuePriority
+                                venuePriority: venuePriority,
+                                courtPriority: courtPriority // 场地优先级
                             };
 
                             allAvailable.push(slotInfo);
@@ -718,18 +825,47 @@
                         }
                     }
 
+                    // 只在找到可预约场地时显示简化信息
                     if (availableCount > 0) {
-                        addLog(`✅ 时段 ${timeSlot} 找到 ${availableCount} 个可预约场地`, 'success');
+                        addLog(`✅ ${timeSlot} 找到 ${availableCount} 个可预约场地`, 'success');
                     }
                 }
             }
 
+            // 排序逻辑：优先级数字越小越优先
             allAvailable.sort((a, b) => {
+                // 首先按场地优先级排序（数字越小优先级越高）
+                if (a.courtPriority !== b.courtPriority) {
+                    return a.courtPriority - b.courtPriority;
+                }
+                // 其次按场馆优先级排序
                 if (a.venuePriority !== b.venuePriority) {
                     return a.venuePriority - b.venuePriority;
                 }
+                // 最后按时间优先级排序
                 return a.priority - b.priority;
             });
+
+            // 🔍 简化调试信息显示
+            if (allAvailable.length > 0) {
+                // 只在羽毛球且有特殊优先级场地时显示详细信息
+                if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球") {
+                    const hasSpecialCourts = allAvailable.some(slot =>
+                        slot.courtPriority === -2 || slot.courtPriority === -1
+                    );
+
+                    if (hasSpecialCourts) {
+                        const topSlot = allAvailable[0];
+                        let priorityText = "";
+                        if (topSlot.courtPriority === -2) {
+                            priorityText = " (🏆 5号场优先)";
+                        } else if (topSlot.courtPriority === -1) {
+                            priorityText = " (⭐ 10号场)";
+                        }
+                        addLog(`🎯 优选场地: ${topSlot.venueName}${priorityText}`, 'info');
+                    }
+                }
+            }
 
             return allAvailable;
 
@@ -748,11 +884,13 @@
                 return false;
             }
 
-            let venueCode = "111";
-            if (slotName.includes("至畅")) {
-                venueCode = "104";
-            } else if (slotName.includes("至快")) {
-                venueCode = "111";
+            // 使用新的场馆代码映射
+            let venueCode = "104"; // 默认值
+            for (const [venueName, code] of Object.entries(VENUE_CODES)) {
+                if (slotName.includes(venueName)) {
+                    venueCode = code;
+                    break;
+                }
             }
 
             const [startTime, endTime] = timeSlot.split("-");
@@ -776,7 +914,7 @@
                 PC_OR_PHONE: "pc"
             });
 
-            addLog(`🎯 正在预约: ${slotName}`, 'info');
+            // 移除"正在预约"的重复提示，因为上面已经显示了
 
             const response = await fetch(
                 "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/sportVenue/insertVenueBookingInfo.do",
@@ -845,8 +983,21 @@
         }
 
         addLog(`🚀 开始自动抢票！`, 'success');
-        addLog(`📊 配置: ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${CONFIG.TARGET_DATE}`, 'info');
-        addLog(`🎯 目标: 预约 ${currentMaxBookings} 个时间段`, 'info');
+        addLog(`📊 ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${CONFIG.TARGET_DATE} | 目标: ${currentMaxBookings} 个时段`, 'info');
+
+        // 添加场馆选择提示
+        if (CONFIG.SPORT === "羽毛球") {
+            if (CONFIG.PREFERRED_VENUE === "全部") {
+                addLog(`🏟️ 场馆策略: 全部场馆 (至畅 > 至快)`, 'info');
+            } else {
+                addLog(`🏟️ 场馆策略: 仅${CONFIG.PREFERRED_VENUE}体育馆`, 'info');
+            }
+
+            // 只在丽湖至畅时显示优先级提示
+            if (CONFIG.CAMPUS === "丽湖" && (CONFIG.PREFERRED_VENUE === "至畅" || CONFIG.PREFERRED_VENUE === "全部")) {
+                addLog(`🎾 至畅场地优先级: 5号 > 10号 > 其他 > 1号/6号`, 'info');
+            }
+        }
 
         try {
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
@@ -856,12 +1007,20 @@
                 }
 
                 retryCount++;
-                addLog(`🔍 第 ${retryCount} 次查询 (${successfulBookings.length}/${currentMaxBookings})`);
+                // 简化查询进度显示
+                if (retryCount === 1 || retryCount % 10 === 0 || retryCount <= 5) {
+                    addLog(`🔍 第 ${retryCount} 次查询 (${successfulBookings.length}/${currentMaxBookings})`);
+                }
 
                 const availableSlots = await getAvailableSlots();
 
                 if (availableSlots.length > 0) {
-                    addLog(`🎉 找到 ${availableSlots.length} 个可预约时段！`, 'success');
+                    // 简化找到场地的提示
+                    if (availableSlots.length <= 5) {
+                        addLog(`🎉 找到 ${availableSlots.length} 个可预约时段`, 'success');
+                    } else {
+                        addLog(`🎉 找到 ${availableSlots.length} 个可预约时段 (显示前5个)`, 'success');
+                    }
 
                     const bookedTimeSlots = successfulBookings.map(booking => booking.timeSlot);
                     const remainingSlots = availableSlots.filter(slot =>
@@ -883,13 +1042,34 @@
 
                             if (timeSlotGroups[timeSlot]) {
                                 const slotsInTime = timeSlotGroups[timeSlot];
-                                slotsInTime.sort((a, b) => a.venuePriority - b.venuePriority);
+                                // 重新排序以确保优先级正确
+                                slotsInTime.sort((a, b) => {
+                                    if (a.courtPriority !== b.courtPriority) {
+                                        return a.courtPriority - b.courtPriority;
+                                    }
+                                    return a.venuePriority - b.venuePriority;
+                                });
 
                                 const firstSlot = slotsInTime[0];
+
+                                // 简化选择场地信息显示
+                                let priorityText = "";
+                                if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球" && firstSlot.venueName.includes("至畅")) {
+                                    if (firstSlot.courtPriority === -2) {
+                                        priorityText = " 🏆";
+                                    } else if (firstSlot.courtPriority === -1) {
+                                        priorityText = " ⭐";
+                                    } else if (firstSlot.courtPriority === 2) {
+                                        priorityText = " 🔻";
+                                    }
+                                }
+
+                                addLog(`🎯 预约: ${firstSlot.venueName}${priorityText}`, 'info');
+
                                 const result = await bookSlot(firstSlot.wid, firstSlot.name);
 
                                 if (result === true) {
-                                    addLog(`✨ 时间段 ${timeSlot} 预约成功！`, 'success');
+                                    addLog(`✨ ${timeSlot} 预约成功！`, 'success');
                                     if (successfulBookings.length < currentMaxBookings) {
                                         await new Promise(resolve => setTimeout(resolve, 1000));
                                     }
@@ -901,10 +1081,18 @@
                             }
                         }
                     }
+                } else {
+                    // 简化无可用场地的提示
+                    if (retryCount <= 3 || retryCount % 20 === 0) {
+                        addLog(`🔍 暂无可预约场地`, 'warning');
+                    }
                 }
 
                 if (successfulBookings.length < currentMaxBookings && isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
-                    addLog(`⏳ 等待 ${CONFIG.RETRY_INTERVAL} 秒后重试...`);
+                    // 只在前几次或间隔显示等待信息
+                    if (retryCount <= 3 || retryCount % 30 === 0) {
+                        addLog(`⏳ 等待 ${CONFIG.RETRY_INTERVAL} 秒后重试...`);
+                    }
                     await new Promise(resolve => setTimeout(resolve, CONFIG.RETRY_INTERVAL * 1000));
                 }
             }
