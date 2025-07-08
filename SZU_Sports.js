@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.0.7
-// @description  深圳大学体育场馆自动预约脚本 - 支持面板隐藏显示
+
+// @version      1.1.3
+// @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
+// @match        https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
 // @icon         🎾
-// @grant        GM_setValue
-// @grant        GM_getValue
+// @grant        none
 // @run-at       document-end
 // @license      MIT
 // @downloadURL https://update.greasyfork.org/scripts/537386/%E6%B7%B1%E5%9C%B3%E5%A4%A7%E5%AD%A6%E4%BD%93%E8%82%B2%E5%9C%BA%E9%A6%86%E8%87%AA%E5%8A%A8%E6%8A%A2%E7%A5%A8.user.js
@@ -16,6 +17,70 @@
 
 (function () {
     'use strict';
+
+    // 更精确的设备检测
+    const userAgent = navigator.userAgent;
+    const isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+    const isIPad = /iPad/i.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    // 修改触摸设备检测逻辑，优先判断移动设备
+    const isTouchDevice = isMobile || isIPad || (navigator.maxTouchPoints > 0 && /Android|Mobile/i.test(userAgent));
+
+    console.log('设备检测:', { isMobile, isIOS, isIPad, isTouchDevice });
+
+    // 增强的存储方案 - 兼容iOS限制
+    const Storage = {
+        set: function (key, value) {
+            const fullKey = 'szu_sports_' + key;
+            try {
+                // 尝试 localStorage
+                localStorage.setItem(fullKey, JSON.stringify(value));
+                return true;
+            } catch (e) {
+                console.warn('localStorage 失败，尝试 sessionStorage:', e);
+                try {
+                    // 回退到 sessionStorage
+                    sessionStorage.setItem(fullKey, JSON.stringify(value));
+                    return true;
+                } catch (e2) {
+                    console.warn('sessionStorage 也失败，使用内存存储:', e2);
+                    // 最后回退到内存存储
+                    if (!window.memoryStorage) window.memoryStorage = {};
+                    window.memoryStorage[fullKey] = value;
+                    return true;
+                }
+            }
+        },
+        get: function (key, defaultValue) {
+            const fullKey = 'szu_sports_' + key;
+            try {
+                // 尝试 localStorage
+                const item = localStorage.getItem(fullKey);
+                if (item !== null) {
+                    return JSON.parse(item);
+                }
+            } catch (e) {
+                console.warn('读取 localStorage 失败:', e);
+            }
+
+            try {
+                // 尝试 sessionStorage
+                const item = sessionStorage.getItem(fullKey);
+                if (item !== null) {
+                    return JSON.parse(item);
+                }
+            } catch (e) {
+                console.warn('读取 sessionStorage 失败:', e);
+            }
+
+            // 尝试内存存储
+            if (window.memoryStorage && window.memoryStorage[fullKey] !== undefined) {
+                return window.memoryStorage[fullKey];
+            }
+
+            return defaultValue;
+        }
+    };
 
     // 运动项目映射
     const SPORT_CODES = {
@@ -72,27 +137,26 @@
         return tomorrow.toISOString().split('T')[0];
     }
 
-    // 保存和加载配置
+    // 修改保存和加载配置函数
     function saveConfig(config) {
-        GM_setValue('bookingConfig', JSON.stringify(config));
+        Storage.set('bookingConfig', config);
     }
 
     function loadConfig() {
         try {
-            const saved = GM_getValue('bookingConfig', null);
-            return saved ? { ...DEFAULT_CONFIG, ...JSON.parse(saved) } : DEFAULT_CONFIG;
+            const saved = Storage.get('bookingConfig', null);
+            return saved ? { ...DEFAULT_CONFIG, ...saved } : DEFAULT_CONFIG;
         } catch (e) {
             return DEFAULT_CONFIG;
         }
     }
 
-    // 保存和加载面板状态
     function savePanelState(isVisible) {
-        GM_setValue('panelVisible', isVisible);
+        Storage.set('panelVisible', isVisible);
     }
 
     function loadPanelState() {
-        return GM_getValue('panelVisible', true);
+        return Storage.get('panelVisible', true);
     }
 
     // 全局变量
@@ -111,80 +175,255 @@
         return Math.min(selectedTimeSlots, 2); // 最多2个，但不超过选择的时间段数量
     }
 
-    // 创建浮动按钮
+    // 修改创建浮动按钮函数 - 完全重写触摸事件处理
     function createFloatingButton() {
         const button = document.createElement('div');
         button.id = 'floating-toggle-btn';
+
+        // iOS设备尺寸优化
+        const buttonSize = isIPad ? '80px' : (isMobile ? '70px' : '60px');
+        const fontSize = isIPad ? '32px' : (isMobile ? '28px' : '24px');
+
         button.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 10001;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            border: 3px solid rgba(255,255,255,0.2);
-            font-size: 24px;
-            user-select: none;
-        `;
+        position: fixed;
+        top: ${isMobile ? '20px' : '20px'};
+        right: ${isMobile ? '20px' : '20px'};
+        width: ${buttonSize};
+        height: ${buttonSize};
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10001;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        border: 3px solid rgba(255,255,255,0.2);
+        font-size: ${fontSize};
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    `;
 
         button.innerHTML = '🎾';
         button.title = '显示/隐藏抢票面板';
 
-        // 悬停效果
-        button.addEventListener('mouseenter', () => {
-            button.style.transform = 'scale(1.1)';
-            button.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-        });
-
-        button.addEventListener('mouseleave', () => {
-            button.style.transform = 'scale(1)';
-            button.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-        });
-
-        // 点击切换面板显示/隐藏
-        button.addEventListener('click', () => {
+        // 统一的点击处理函数
+        function handleButtonClick(e) {
+            console.log('浮动按钮被点击，当前面板状态:', isPanelVisible);
+            if (e) {
+                e.preventDefault(); // 集中处理 preventDefault
+                e.stopPropagation(); // 集中处理 stopPropagation
+            }
             togglePanel();
-        });
+        }
+
+        // 为 iPad 特别优化的事件处理
+        if (isTouchDevice) {
+            let isPressed = false;
+            let touchStartTime = 0;
+            let hasMoved = false;
+            let startX = 0, startY = 0;
+
+            const pressThreshold = 800; // ms, 定义有效点击的最大时长
+            const moveThreshold = 10; // pixels, 定义手指移动多少算作移动而非点击
+
+            // 通用的按下处理逻辑
+            function onInteractionStart(clientX, clientY, pointerType = 'touch') {
+                console.log(`浮动按钮 ${pointerType} start`);
+                isPressed = true;
+                touchStartTime = Date.now();
+                hasMoved = false;
+                startX = clientX;
+                startY = clientY;
+
+                button.style.transform = 'scale(1.1)';
+                button.style.opacity = '0.8';
+            }
+
+            // 通用的移动处理逻辑
+            function onInteractionMove(clientX, clientY) {
+                if (!isPressed) return;
+                if (!hasMoved) {
+                    if (Math.abs(clientX - startX) > moveThreshold || Math.abs(clientY - startY) > moveThreshold) {
+                        hasMoved = true;
+                        console.log('浮动按钮 moved');
+                    }
+                }
+            }
+
+            // 通用的抬起/结束处理逻辑
+            function onInteractionEnd(e, interactionType = 'touch') {
+                console.log(`浮动按钮 ${interactionType} end`, { isPressed, hasMoved, duration: Date.now() - touchStartTime });
+
+                if (!isPressed) { // 如果没有按下状态，则重置并返回
+                    button.style.transform = 'scale(1)';
+                    button.style.opacity = '1';
+                    return;
+                }
+
+                const pressDuration = Date.now() - touchStartTime;
+
+                if (!hasMoved && pressDuration < pressThreshold) {
+                    console.log('浮动按钮 - TAP detected');
+                    handleButtonClick(e); // 调用统一处理函数
+                }
+
+                button.style.transform = 'scale(1)';
+                button.style.opacity = '1';
+                isPressed = false;
+                hasMoved = false;
+            }
+
+            // 通用的取消处理逻辑
+            function onInteractionCancel() {
+                console.log('浮动按钮 interaction cancel');
+                isPressed = false;
+                hasMoved = false;
+                button.style.transform = 'scale(1)';
+                button.style.opacity = '1';
+            }
+
+            if (window.PointerEvent) {
+                console.log('使用 Pointer 事件');
+                button.addEventListener('pointerdown', (e) => {
+                    if (!e.isPrimary || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+                    onInteractionStart(e.clientX, e.clientY, e.pointerType);
+                    // 不在此处 e.preventDefault()，让滚动等默认行为可以发生，除非确定是点击
+                });
+                button.addEventListener('pointermove', (e) => {
+                    if (!e.isPrimary || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+                    onInteractionMove(e.clientX, e.clientY);
+                });
+                button.addEventListener('pointerup', (e) => {
+                    if (!e.isPrimary || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+                    onInteractionEnd(e, e.pointerType);
+                });
+                button.addEventListener('pointercancel', onInteractionCancel);
+            } else {
+                console.log('使用 Touch 事件');
+                button.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) return; // 忽略多点触控
+                    const touch = e.touches[0];
+                    onInteractionStart(touch.clientX, touch.clientY, 'touch');
+                }, { passive: true }); // passive:true 允许默认滚动行为
+
+                button.addEventListener('touchmove', (e) => {
+                    if (!isPressed || e.touches.length > 1) return;
+                    const touch = e.touches[0];
+                    onInteractionMove(touch.clientX, touch.clientY);
+                }, { passive: true }); // passive:true 允许默认滚动行为
+
+                button.addEventListener('touchend', (e) => {
+                    // touchend 在 e.touches 中没有信息, 使用 e.changedTouches
+                    if (e.changedTouches.length > 1) return; // 通常是单点结束
+                    onInteractionEnd(e, 'touch');
+                }); // touchend 不应是 passive，因为 handleButtonClick 可能调用 preventDefault
+
+                button.addEventListener('touchcancel', onInteractionCancel);
+            }
+        } else {
+            // 桌面端使用鼠标事件
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'scale(1.1)';
+                button.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+                button.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+            });
+            button.addEventListener('click', handleButtonClick);
+        }
 
         document.body.appendChild(button);
+        console.log('浮动按钮创建完成，当前面板状态:', isPanelVisible);
         return button;
     }
 
-    // 创建控制面板
+
+    // 修改创建控制面板函数的移动端样式部分
     function createControlPanel() {
         const panel = document.createElement('div');
         panel.id = 'auto-booking-panel';
-        panel.style.cssText = `
-        position: fixed;
+
+        // iOS设备样式优化 - 修复变换原点问题
+        const mobileStyles = isMobile ? `
+        width: calc(100vw - 30px);
+        max-width: ${isIPad ? '500px' : '380px'};
+        top: ${isIPad ? '120px' : '100px'};
+        left: 50%;
+        /* transform: translateX(-50%); // Initial transform will be set below */
+        font-size: ${isIPad ? '18px' : '16px'};
+        max-height: calc(100vh - 150px);
+        -webkit-overflow-scrolling: touch;
+    ` : `
+        width: 400px;
         top: 20px;
         right: 90px;
-        width: 400px;
+        max-height: 90vh;
+        /* transform: translateX(0); // Initial transform will be set below */
+    `;
+
+        panel.style.cssText = `
+        position: fixed;
+        ${mobileStyles}
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         z-index: 10000;
-        font-family: 'Microsoft YaHei', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
         color: white;
         border: 2px solid rgba(255,255,255,0.2);
-        max-height: 90vh;
         overflow-y: auto;
-        transition: all 0.3s ease;
-        transform: translateX(0);
+        /* transition: all 0.3s ease; // Replaced with more specific transition */
+        transition: opacity 0.3s ease, transform 0.3s ease; /* Specific transitions for animation */
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        /* Initial state will be set below after appending */
     `;
+
+        // iOS输入框样式优化
+        const inputBaseStyle = `
+            width: 100%;
+            padding: ${isIPad ? '14px' : (isMobile ? '12px' : '8px')};
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            font-size: ${isIPad ? '18px' : (isMobile ? '16px' : '14px')};
+            box-sizing: border-box;
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        `;
+
+        // iOS按钮样式优化
+        const buttonBaseStyle = `
+            width: 100%;
+            padding: ${isIPad ? '18px' : (isMobile ? '15px' : '12px')};
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: ${isIPad ? '20px' : (isMobile ? '18px' : '16px')};
+            font-weight: bold;
+            transition: all 0.3s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        `;
+
 
         panel.innerHTML = `
         <div style="margin-bottom: 15px; text-align: center; position: relative;">
-            <h3 style="margin: 0; font-size: 18px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                🎾 自动抢票助手 v1.0.7
+            <h3 style="margin: 0; font-size: ${isMobile ? '20px' : '18px'}; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                🎾 自动抢票助手 v1.1.3
             </h3>
             <button id="close-panel" style="
                 position: absolute;
@@ -193,24 +432,26 @@
                 background: rgba(255,255,255,0.2);
                 border: none;
                 color: white;
-                width: 30px;
-                height: 30px;
+                width: ${isMobile ? '35px' : '30px'};
+                height: ${isMobile ? '35px' : '30px'};
                 border-radius: 50%;
                 cursor: pointer;
-                font-size: 16px;
+                font-size: ${isMobile ? '20px' : '16px'};
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                touch-action: manipulation;
             " title="隐藏面板">×</button>
             <button id="toggle-config" style="
                 background: rgba(255,255,255,0.2);
                 border: 1px solid rgba(255,255,255,0.3);
                 color: white;
-                padding: 5px 10px;
+                padding: ${isMobile ? '8px 12px' : '5px 10px'};
                 border-radius: 5px;
                 cursor: pointer;
                 margin-top: 5px;
-                font-size: 12px;
+                font-size: ${isMobile ? '14px' : '12px'};
+                touch-action: manipulation;
             ">⚙️ 配置设置</button>
         </div>
 
@@ -220,64 +461,28 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
-            display: block;
+            display: block; /* Or load from saved state */
         ">
             <!-- 用户信息 -->
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">👤 学号/工号:</label>
-                <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">👤 学号/工号:</label>
+                <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="${inputBaseStyle}">
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">📝 姓名:</label>
-                <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">📝 姓名:</label>
+                <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="${inputBaseStyle}">
             </div>
 
             <!-- 预约设置 -->
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">📅 预约日期:</label>
-                <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">📅 预约日期:</label>
+                <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="${inputBaseStyle}">
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏟️ 运动项目:</label>
-                <select id="sport-type" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">🏟️ 运动项目:</label>
+                <select id="sport-type" style="${inputBaseStyle}">
                     ${Object.keys(SPORT_CODES).map(sport =>
             `<option value="${sport}" ${sport === CONFIG.SPORT ? 'selected' : ''}>${sport}</option>`
         ).join('')}
@@ -285,17 +490,8 @@
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏫 校区:</label>
-                <select id="campus" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">🏫 校区:</label>
+                <select id="campus" style="${inputBaseStyle}">
                     ${Object.keys(CAMPUS_CODES).map(campus =>
             `<option value="${campus}" ${campus === CONFIG.CAMPUS ? 'selected' : ''}>${campus}</option>`
         ).join('')}
@@ -304,41 +500,32 @@
 
             <!-- 羽毛球场馆选择 -->
             <div id="venue-selection" style="margin-bottom: 12px; display: ${CONFIG.SPORT === '羽毛球' ? 'block' : 'none'};">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">🏟️ 优先场馆:</label>
-                <select id="preferred-venue" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">🏟️ 优先场馆:</label>
+                <select id="preferred-venue" style="${inputBaseStyle}">
                     <option value="至畅" ${CONFIG.PREFERRED_VENUE === '至畅' ? 'selected' : ''}>🏆 至畅体育馆</option>
                     <option value="至快" ${CONFIG.PREFERRED_VENUE === '至快' ? 'selected' : ''}>⚡ 至快体育馆</option>
                     <option value="全部" ${CONFIG.PREFERRED_VENUE === '全部' ? 'selected' : ''}>🔄 全部场馆</option>
                 </select>
-                <div style="font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 2px;">
+                <div style="font-size: ${isMobile ? '12px' : '10px'}; color: rgba(255,255,255,0.7); margin-top: 2px;">
                     💡 选择"全部"将按至畅>至快的顺序预约
                 </div>
             </div>
 
             <!-- 时间段选择 -->
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 优先时间段 (按优先级排序):</label>
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">⏰ 优先时间段 (按优先级排序):</label>
                 <div id="time-slots-container" style="
-                    max-height: 100px;
+                    max-height: ${isMobile ? '120px' : '100px'};
                     overflow-y: auto;
                     background: rgba(255,255,255,0.1);
                     border-radius: 4px;
                     padding: 5px;
                 ">
                     ${TIME_SLOTS.map(slot => `
-                        <label style="display: block; font-size: 11px; margin: 2px 0; cursor: pointer;">
+                        <label style="display: block; font-size: ${isMobile ? '14px' : '11px'}; margin: ${isMobile ? '5px 0' : '2px 0'}; cursor: pointer;">
                             <input type="checkbox" value="${slot}"
                                 ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''}
-                                style="margin-right: 5px;">
+                                style="margin-right: 5px; transform: ${isMobile ? 'scale(1.2)' : 'scale(1)'};">
                             ${slot}
                         </label>
                     `).join('')}
@@ -348,82 +535,51 @@
             <!-- 运行参数 -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                 <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏱️ 查询间隔(秒):</label>
-                    <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
+                    <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">⏱️ 查询间隔(秒):</label>
+                    <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="${inputBaseStyle}">
                 </div>
                 <div>
-                    <label style="font-size: 12px; display: block; margin-bottom: 3px;">🔄 最大重试:</label>
-                    <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="
-                        width: 100%;
-                        padding: 6px;
-                        border: none;
-                        border-radius: 4px;
-                        background: rgba(255,255,255,0.9);
-                        color: #333;
-                        font-size: 12px;
-                        box-sizing: border-box;
-                    ">
+                    <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">🔄 最大重试:</label>
+                    <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="${inputBaseStyle}">
                 </div>
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; display: block; margin-bottom: 3px;">⏰ 请求超时(秒):</label>
-                <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="
-                    width: 100%;
-                    padding: 6px;
-                    border: none;
-                    border-radius: 4px;
-                    background: rgba(255,255,255,0.9);
-                    color: #333;
-                    font-size: 12px;
-                    box-sizing: border-box;
-                ">
+                <label style="font-size: ${isMobile ? '14px' : '12px'}; display: block; margin-bottom: 3px;">⏰ 请求超时(秒):</label>
+                <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${inputBaseStyle}">
             </div>
 
             <button id="save-config" style="
-                width: 100%;
-                padding: 8px;
+                ${buttonBaseStyle}
                 background: linear-gradient(45deg, #4caf50, #45a049);
-                border: none;
-                border-radius: 6px;
                 color: white;
-                font-size: 14px;
-                cursor: pointer;
+                font-size: ${isMobile ? '16px' : '14px'};
                 margin-bottom: 10px;
             ">💾 保存配置</button>
         </div>
 
         <!-- 当前配置显示 -->
         <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-            <div style="font-size: 13px; margin-bottom: 5px;">
+            <div style="font-size: ${isMobile ? '15px' : '13px'}; margin-bottom: 5px;">
                 👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span>
             </div>
-            <div style="font-size: 13px; margin-bottom: 5px;">
+            <div style="font-size: ${isMobile ? '15px' : '13px'}; margin-bottom: 5px;">
                 📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> |
                 🏟️ <span id="display-sport">${CONFIG.SPORT}</span> |
                 🏫 <span id="display-campus">${CONFIG.CAMPUS}</span>
             </div>
-            <div id="venue-display" style="font-size: 13px; margin-bottom: 5px; display: ${CONFIG.SPORT === '羽毛球' ? 'block' : 'none'};">
+            <div id="venue-display" style="font-size: ${isMobile ? '15px' : '13px'}; margin-bottom: 5px; display: ${CONFIG.SPORT === '羽毛球' ? 'block' : 'none'};">
                 🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE || '至畅'}</span>
             </div>
-            <div style="font-size: 13px; margin-bottom: 5px;">
+            <div style="font-size: ${isMobile ? '15px' : '13px'}; margin-bottom: 5px;">
                 ⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span>
             </div>
-            <div style="font-size: 13px;">
+            <div style="font-size: ${isMobile ? '15px' : '13px'};">
                 ⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s |
                 重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> |
                 超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s
             </div>
-            <div style="font-size: 13px; margin-top: 5px;">
+            <div style="font-size: ${isMobile ? '15px' : '13px'}; margin-top: 5px;">
                 🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span>
             </div>
         </div>
@@ -431,17 +587,9 @@
         <!-- 控制按钮 -->
         <div style="margin-bottom: 15px;">
             <button id="start-btn" style="
-                width: 100%;
-                padding: 12px;
+                ${buttonBaseStyle}
                 background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-                border: none;
-                border-radius: 8px;
                 color: white;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.3s;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             ">
                 🚀 开始抢票
             </button>
@@ -452,129 +600,244 @@
             background: rgba(0,0,0,0.2);
             padding: 10px;
             border-radius: 8px;
-            font-size: 12px;
-            max-height: 200px;
+            font-size: ${isMobile ? '14px' : '12px'};
+            max-height: ${isMobile ? '250px' : '200px'};
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
         ">
             <div style="color: #ffd700;">🔧 等待开始...</div>
         </div>
 
-        <div style="margin-top: 15px; text-align: center; font-size: 11px; opacity: 0.8;">
-            ⚡ 快捷键: Ctrl+Shift+S 开始/停止 | Ctrl+Shift+H 显示/隐藏面板
+        <div style="margin-top: 15px; text-align: center; font-size: ${isMobile ? '13px' : '11px'}; opacity: 0.8;">
+            ${isMobile ? '📱 触摸优化版本' : '⚡ 快捷键: Ctrl+Shift+S 开始/停止 | Ctrl+Shift+H 显示/隐藏面板'}
         </div>
     `;
 
         document.body.appendChild(panel);
 
-        // 根据保存的状态设置面板可见性
-        if (!isPanelVisible) {
-            panel.style.display = 'none';
+        // 定义 transform 值，方便复用
+        const transformVisibleMobile = 'translateX(-50%) translateY(0)';
+        const transformHiddenMobile = 'translateX(-50%) translateY(-30px)'; // 轻微向上滑出作为隐藏状态
+        const transformVisibleDesktop = 'translateX(0)';
+        const transformHiddenDesktop = 'translateX(100%)'; // 从右侧滑出作为隐藏状态
+
+        // 根据保存的状态设置面板初始可见性、透明度和位置
+        if (isPanelVisible) {
+            panel.style.display = 'block';
+            panel.style.opacity = '1';
+            if (isMobile) {
+                panel.style.transform = transformVisibleMobile;
+            } else {
+                panel.style.transform = transformVisibleDesktop;
+            }
+        } else {
+            panel.style.display = 'none'; // 初始隐藏
+            panel.style.opacity = '0';    // 透明
+            // 设置为隐藏时的 transform，这样 togglePanel 显示时可以从此状态过渡
+            if (isMobile) {
+                panel.style.transform = transformHiddenMobile;
+            } else {
+                panel.style.transform = transformHiddenDesktop;
+            }
         }
 
-        bindEvents();
+        bindEventsIOS(panel); // 将 panel 作为参数传递
         return panel;
     }
 
-    // 切换面板显示/隐藏
+    // 修改切换面板函数
     function togglePanel() {
+        console.log('togglePanel 被调用，当前面板状态 (切换前):', isPanelVisible);
+
         isPanelVisible = !isPanelVisible;
         savePanelState(isPanelVisible);
 
+        console.log('切换后面板状态:', isPanelVisible);
+
         if (controlPanel) {
-            if (isPanelVisible) {
-                controlPanel.style.display = 'block';
-                // 添加入场动画
-                controlPanel.style.transform = 'translateX(100%)';
+            const transformVisibleMobile = 'translateX(-50%) translateY(0)';
+            const transformHiddenMobile = 'translateX(-50%) translateY(-30px)';
+            const transformVisibleDesktop = 'translateX(0)';
+            const transformHiddenDesktop = 'translateX(100%)'; // 面板从右侧滑出
+
+            // 确保 transition 属性在 controlPanel 上 (已在 createControlPanel 中设置)
+            // controlPanel.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+            if (isPanelVisible) { // 如果要显示面板
+                console.log('准备显示面板');
+                controlPanel.style.display = 'block'; // 必须先 block 才能应用 transform 和 opacity
+
+                // 设置动画起始状态 (面板在隐藏位置，透明)
+                // 这确保了即使面板之前是 display:none，动画也能从正确的视觉起点开始
+                if (isMobile) {
+                    controlPanel.style.transform = transformHiddenMobile;
+                } else {
+                    controlPanel.style.transform = transformHiddenDesktop;
+                }
                 controlPanel.style.opacity = '0';
+
+                // 使用 setTimeout 确保浏览器渲染了起始状态，然后再开始过渡
                 setTimeout(() => {
-                    controlPanel.style.transition = 'all 0.3s ease';
-                    controlPanel.style.transform = 'translateX(0)';
                     controlPanel.style.opacity = '1';
-                }, 10);
-            } else {
-                // 添加退场动画
-                controlPanel.style.transition = 'all 0.3s ease';
-                controlPanel.style.transform = 'translateX(100%)';
+                    if (isMobile) {
+                        controlPanel.style.transform = transformVisibleMobile;
+                    } else {
+                        controlPanel.style.transform = transformVisibleDesktop;
+                    }
+                    console.log('面板显示动画开始');
+                }, 10); // 短暂延迟，让浏览器捕获起始状态
+
+            } else { // 如果要隐藏面板
+                console.log('准备隐藏面板');
+                // 开始隐藏动画 (移动到隐藏位置，变透明)
                 controlPanel.style.opacity = '0';
+                if (isMobile) {
+                    controlPanel.style.transform = transformHiddenMobile;
+                } else {
+                    controlPanel.style.transform = transformHiddenDesktop;
+                }
+                console.log('面板隐藏动画开始');
+
+                // 等待过渡动画完成后再设置 display: none
                 setTimeout(() => {
-                    controlPanel.style.display = 'none';
-                }, 300);
+                    if (!isPanelVisible) { // 再次检查状态，防止快速切换导致问题
+                        controlPanel.style.display = 'none';
+                        console.log('面板已完全隐藏 (display: none)');
+                    }
+                }, 300); // 300ms 对应 CSS 中的 transition-duration
             }
         }
 
         // 更新浮动按钮样式
         if (floatingButton) {
+            console.log('更新浮动按钮样式，面板可见:', isPanelVisible);
             if (isPanelVisible) {
                 floatingButton.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                 floatingButton.innerHTML = '🎾';
                 floatingButton.title = '隐藏抢票面板';
             } else {
                 floatingButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
-                floatingButton.innerHTML = '📱';
+                floatingButton.innerHTML = '📱'; // 可以考虑用不同图标指示面板已隐藏
                 floatingButton.title = '显示抢票面板';
             }
+            console.log('浮动按钮样式更新完成');
         }
+
+        console.log('面板状态切换完成:', isPanelVisible);
     }
 
-    // 绑定事件
-    function bindEvents() {
-        // 面板关闭按钮
-        document.getElementById('close-panel').addEventListener('click', () => {
-            togglePanel();
-        });
+    // 修改 iOS 事件绑定函数
+    function bindEventsIOS(panelElement) { // 接受 panelElement 作为参数
+        // 为所有按钮添加通用的触摸处理
+        function addButtonTouchHandler(button, clickHandler) {
+            if (isTouchDevice) {
+                let touchStarted = false;
+                let touchStartTime = 0;
 
-        // 配置显示/隐藏
-        document.getElementById('toggle-config').addEventListener('click', () => {
-            const configArea = document.getElementById('config-area');
-            if (configArea.style.display === 'none') {
-                configArea.style.display = 'block';
-                document.getElementById('toggle-config').textContent = '⚙️ 隐藏配置';
+                // 移除可能存在的旧事件监听器
+                button.removeEventListener('click', clickHandler);
+
+                button.addEventListener('touchstart', (e) => {
+                    touchStarted = true;
+                    touchStartTime = Date.now();
+                    button.style.opacity = '0.7';
+                    button.style.transform = 'scale(0.95)';
+                    e.preventDefault();
+                }, { passive: false });
+
+                button.addEventListener('touchend', (e) => {
+                    if (touchStarted && (Date.now() - touchStartTime) < 1000) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        button.style.opacity = '1';
+                        button.style.transform = 'scale(1)';
+
+                        // 延迟执行点击处理
+                        setTimeout(() => {
+                            try {
+                                clickHandler();
+                            } catch (error) {
+                                console.error('Button click handler error:', error);
+                            }
+                        }, 50);
+                    }
+                    touchStarted = false;
+                }, { passive: false });
+
+                button.addEventListener('touchcancel', () => {
+                    touchStarted = false;
+                    button.style.opacity = '1';
+                    button.style.transform = 'scale(1)';
+                }, { passive: true });
+
             } else {
-                configArea.style.display = 'none';
-                document.getElementById('toggle-config').textContent = '⚙️ 显示配置';
+                // 桌面端直接使用点击事件
+                button.addEventListener('click', clickHandler);
             }
-        });
+        }
+
+        // 面板关闭按钮
+        const closeBtn = panelElement.querySelector('#close-panel'); // 使用 panelElement.querySelector
+        if (closeBtn) {
+            addButtonTouchHandler(closeBtn, () => {
+                togglePanel();
+            });
+        }
+
+        // 配置显示/隐藏按钮
+        const toggleConfigBtn = panelElement.querySelector('#toggle-config'); // 使用 panelElement.querySelector
+        if (toggleConfigBtn) {
+            addButtonTouchHandler(toggleConfigBtn, () => {
+                const configArea = panelElement.querySelector('#config-area'); // 使用 panelElement.querySelector
+                if (configArea.style.display === 'none') {
+                    configArea.style.display = 'block';
+                    toggleConfigBtn.textContent = '⚙️ 隐藏配置';
+                } else {
+                    configArea.style.display = 'none';
+                    toggleConfigBtn.textContent = '⚙️ 显示配置';
+                }
+            });
+        }
 
         // 运动项目变化时显示/隐藏场馆选择
-        document.getElementById('sport-type').addEventListener('change', () => {
-            const sportType = document.getElementById('sport-type').value;
-            const venueSelection = document.getElementById('venue-selection');
-            const venueDisplay = document.getElementById('venue-display');
+        const sportTypeSelect = panelElement.querySelector('#sport-type'); // 使用 panelElement.querySelector
+        if (sportTypeSelect) {
+            // select 元素使用 change 事件
+            sportTypeSelect.addEventListener('change', () => {
+                const sportType = sportTypeSelect.value;
+                const venueSelection = panelElement.querySelector('#venue-selection'); // 使用 panelElement.querySelector
+                const venueDisplay = panelElement.querySelector('#venue-display'); // 使用 panelElement.querySelector
 
-            if (sportType === '羽毛球') {
-                venueSelection.style.display = 'block';
-                venueDisplay.style.display = 'block';
-            } else {
-                venueSelection.style.display = 'none';
-                venueDisplay.style.display = 'none';
-            }
-        });
+                if (sportType === '羽毛球') {
+                    if (venueSelection) venueSelection.style.display = 'block';
+                    if (venueDisplay) venueDisplay.style.display = 'block';
+                } else {
+                    if (venueSelection) venueSelection.style.display = 'none';
+                    if (venueDisplay) venueDisplay.style.display = 'none';
+                }
+            });
+        }
 
-        // 保存配置
-        document.getElementById('save-config').addEventListener('click', () => {
-            updateConfigFromUI();
-            updateDisplayConfig();
-            addLog('✅ 配置已保存', 'success');
-        });
+        // 保存配置按钮
+        const saveConfigBtn = panelElement.querySelector('#save-config'); // 使用 panelElement.querySelector
+        if (saveConfigBtn) {
+            addButtonTouchHandler(saveConfigBtn, () => {
+                try {
+                    updateConfigFromUI();
+                    updateDisplayConfig();
+                    addLog('✅ 配置已保存', 'success');
+                } catch (error) {
+                    addLog('❌ 保存配置失败: ' + error.message, 'error');
+                }
+            });
+        }
 
         // 开始/停止按钮
-        document.getElementById('start-btn').addEventListener('click', () => {
-            if (isRunning) {
-                stopBooking();
-            } else {
-                updateConfigFromUI();
-                if (validateConfig()) {
-                    startBooking();
-                }
-            }
-        });
-
-        // 快捷键
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey) {
-                if (e.key === 'S') {
-                    e.preventDefault();
+        const startBtn = panelElement.querySelector('#start-btn'); // 使用 panelElement.querySelector
+        if (startBtn) {
+            addButtonTouchHandler(startBtn, () => {
+                try {
                     if (isRunning) {
                         stopBooking();
                     } else {
@@ -583,18 +846,84 @@
                             startBooking();
                         }
                     }
-                } else if (e.key === 'H') {
-                    e.preventDefault();
-                    togglePanel();
-                } else if (e.key === 'C') {
-                    e.preventDefault();
-                    if (isPanelVisible) {
-                        document.getElementById('toggle-config').click();
+                } catch (error) {
+                    addLog('❌ 操作失败: ' + error.message, 'error');
+                }
+            });
+        }
+
+        // 快捷键 - 只在非移动端添加
+        if (!isMobile) {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey) {
+                    if (e.key === 'S') {
+                        e.preventDefault();
+                        if (isRunning) {
+                            stopBooking();
+                        } else {
+                            updateConfigFromUI();
+                            if (validateConfig()) {
+                                startBooking();
+                            }
+                        }
+                    } else if (e.key === 'H') {
+                        e.preventDefault();
+                        togglePanel();
+                    } else if (e.key === 'C') {
+                        e.preventDefault();
+                        if (isPanelVisible) {
+                            const toggleBtn = panelElement.querySelector('#toggle-config'); // 使用 panelElement.querySelector
+                            if (toggleBtn) toggleBtn.click();
+                        }
                     }
+                }
+            });
+        }
+
+        // iOS输入框优化
+        if (isIOS) {
+            const inputs = panelElement.querySelectorAll('input, select'); // 使用 panelElement.querySelectorAll
+            inputs.forEach(input => {
+                // 防止iOS Safari缩放
+                input.addEventListener('focus', (e) => {
+                    // 对于iOS设备，设置字体大小防止缩放
+                    if (input.type !== 'date' && input.type !== 'number') {
+                        e.target.style.fontSize = '16px';
+                    }
+
+                    // 延迟滚动到视图中
+                    setTimeout(() => {
+                        e.target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 300);
+                });
+
+                input.addEventListener('blur', (e) => {
+                    // 恢复原始字体大小
+                    e.target.style.fontSize = '';
+                });
+            });
+        }
+
+        // checkbox 特殊处理
+        const checkboxes = panelElement.querySelectorAll('input[type="checkbox"]'); // 使用 panelElement.querySelectorAll
+        checkboxes.forEach(checkbox => {
+            if (isTouchDevice) {
+                // 为 checkbox 的父级 label 添加触摸处理
+                const label = checkbox.closest('label');
+                if (label) {
+                    label.style.touchAction = 'manipulation';
+                    label.addEventListener('touchend', (e) => {
+                        // 阻止事件冒泡，让浏览器处理 checkbox 切换
+                        e.stopPropagation();
+                    }, { passive: true });
                 }
             }
         });
     }
+
 
     // 从UI更新配置
     function updateConfigFromUI() {
@@ -714,14 +1043,66 @@
         }
     }
 
-    // 获取可用时段
+    // iOS优化的网络请求
+    async function fetchWithTimeout(url, options, timeout = CONFIG.REQUEST_TIMEOUT * 1000) {
+        // iOS Safari 兼容的 AbortController
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            // iOS Safari 兼容的 fetch 配置
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+                credentials: 'same-origin', // iOS Safari 兼容
+                mode: 'cors',
+                cache: 'no-cache'
+            });
+
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+
+            if (error.name === 'AbortError') {
+                throw new Error('请求超时');
+            }
+            throw error;
+        }
+    }
+
+    // 动态获取基础 URL
+    function getBaseUrl() {
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('ehall-443.webvpn.szu.edu.cn')) {
+            return 'https://ehall-443.webvpn.szu.edu.cn';
+        } else {
+            return 'https://ehall.szu.edu.cn';
+        }
+    }
+
+    // 修改获取可用时段函数，使用动态 URL
     async function getAvailableSlots() {
         try {
             const allAvailable = [];
             const sportCode = SPORT_CODES[CONFIG.SPORT];
             const campusCode = CAMPUS_CODES[CONFIG.CAMPUS];
+            const baseUrl = getBaseUrl(); // 动态获取基础 URL
 
-            for (const timeSlot of CONFIG.PREFERRED_TIMES) {
+            // 获取已预约成功的时间段
+            const bookedTimeSlots = successfulBookings.map(booking => booking.timeSlot);
+
+            // 过滤掉已预约成功的时间段，只查询剩余需要预约的时间段
+            const remainingTimeSlots = CONFIG.PREFERRED_TIMES.filter(timeSlot =>
+                !bookedTimeSlots.includes(timeSlot)
+            );
+
+            // 如果所有时间段都已预约，直接返回空数组
+            if (remainingTimeSlots.length === 0) {
+                return [];
+            }
+
+            for (const timeSlot of remainingTimeSlots) {
                 const [startTime, endTime] = timeSlot.split("-");
 
                 const payload = new URLSearchParams({
@@ -733,8 +1114,9 @@
                     XQDM: campusCode
                 });
 
-                const response = await fetch(
-                    "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/modules/sportVenue/getOpeningRoom.do",
+                // 使用动态 URL
+                const response = await fetchWithTimeout(
+                    `${baseUrl}/qljfwapp/sys/lwSzuCgyy/modules/sportVenue/getOpeningRoom.do`,
                     {
                         method: 'POST',
                         headers: {
@@ -896,6 +1278,7 @@
             const [startTime, endTime] = timeSlot.split("-");
             const sportCode = SPORT_CODES[CONFIG.SPORT];
             const campusCode = CAMPUS_CODES[CONFIG.CAMPUS];
+            const baseUrl = getBaseUrl(); // 动态获取基础 URL
 
             const payload = new URLSearchParams({
                 DHID: "",
@@ -914,10 +1297,9 @@
                 PC_OR_PHONE: "pc"
             });
 
-            // 移除"正在预约"的重复提示，因为上面已经显示了
-
-            const response = await fetch(
-                "https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/sportVenue/insertVenueBookingInfo.do",
+            // 使用动态 URL
+            const response = await fetchWithTimeout(
+                `${baseUrl}/qljfwapp/sys/lwSzuCgyy/sportVenue/insertVenueBookingInfo.do`,
                 {
                     method: 'POST',
                     headers: {
@@ -967,7 +1349,92 @@
         }
     }
 
-    // 主抢票循环
+    // 添加时间检查功能
+    function checkBookingTime() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        // 检查是否在12:25-12:30之间
+        if (hours === 12 && minutes >= 25 && minutes < 30) {
+            const targetTime = new Date();
+            targetTime.setHours(12, 29, 40, 0); // 设置为12:29:40
+
+            const currentTime = now.getTime();
+            const targetTimeMs = targetTime.getTime();
+
+            if (currentTime < targetTimeMs) {
+                const waitTime = targetTimeMs - currentTime;
+                const waitMinutes = Math.floor(waitTime / 60000);
+                const waitSeconds = Math.floor((waitTime % 60000) / 1000);
+
+                return {
+                    shouldWait: true,
+                    waitTime: waitTime,
+                    waitText: `${waitMinutes}分${waitSeconds}秒`
+                };
+            }
+        }
+
+        return { shouldWait: false };
+    }
+
+    // 等待到指定时间的函数
+    async function waitForBookingTime() {
+        const timeCheck = checkBookingTime();
+
+        if (timeCheck.shouldWait) {
+            addLog(`⏰ 检测到当前时间在12:25-12:30之间`, 'info');
+            addLog(`🕐 将等待到12:29:40开始抢票 (还需等待${timeCheck.waitText})`, 'warning');
+
+            // 创建倒计时显示
+            const countdownInterval = setInterval(() => {
+                const currentCheck = checkBookingTime();
+                if (currentCheck.shouldWait) {
+                    const waitMinutes = Math.floor(currentCheck.waitTime / 60000);
+                    const waitSeconds = Math.floor((currentCheck.waitTime % 60000) / 1000);
+
+                    // 更新按钮显示倒计时
+                    const startBtn = document.getElementById('start-btn');
+                    if (startBtn && isRunning) {
+                        startBtn.textContent = `⏰ 等待开始 ${waitMinutes}:${waitSeconds.toString().padStart(2, '0')}`;
+                    }
+
+                    // 每30秒显示一次等待提示
+                    if (waitSeconds % 30 === 0) {
+                        addLog(`⏳ 继续等待... 还有${waitMinutes}分${waitSeconds}秒`, 'info');
+                    }
+                } else {
+                    // 时间到了，清除倒计时
+                    clearInterval(countdownInterval);
+                    addLog(`🚀 等待结束，开始抢票！`, 'success');
+
+                    // 更新按钮显示
+                    const startBtn = document.getElementById('start-btn');
+                    if (startBtn && isRunning) {
+                        startBtn.textContent = '⏹️ 停止抢票';
+                    }
+                }
+            }, 1000); // 每秒更新一次
+
+            // 等待到指定时间
+            await new Promise(resolve => {
+                const checkTime = () => {
+                    const currentCheck = checkBookingTime();
+                    if (!currentCheck.shouldWait) {
+                        clearInterval(countdownInterval);
+                        resolve();
+                    } else {
+                        setTimeout(checkTime, 100); // 每100ms检查一次，确保精确
+                    }
+                };
+                checkTime();
+            });
+        }
+    }
+
+    // 修改主抢票循环函数
     async function startBooking() {
         if (isRunning) return;
 
@@ -1000,6 +1467,18 @@
         }
 
         try {
+            // 检查是否需要等待到特定时间
+            await waitForBookingTime();
+
+            // 如果在等待过程中被停止，直接退出
+            if (!isRunning) {
+                return;
+            }
+
+            // 重新设置开始时间（排除等待时间）
+            startTime = new Date();
+            addLog(`⚡ 正式开始抢票循环！`, 'success');
+
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
                 if (successfulBookings.length >= currentMaxBookings) {
                     addLog(`🎊 恭喜！已成功预约 ${currentMaxBookings} 个时间段！`, 'success');
@@ -1022,62 +1501,61 @@
                         addLog(`🎉 找到 ${availableSlots.length} 个可预约时段 (显示前5个)`, 'success');
                     }
 
-                    const bookedTimeSlots = successfulBookings.map(booking => booking.timeSlot);
-                    const remainingSlots = availableSlots.filter(slot =>
-                        !bookedTimeSlots.includes(slot.timeSlot)
-                    );
+                    // 由于 getAvailableSlots() 已经过滤了已预约的时间段，
+                    // 这里不需要再次过滤，直接使用 availableSlots
+                    const timeSlotGroups = {};
+                    availableSlots.forEach(slot => {
+                        if (!timeSlotGroups[slot.timeSlot]) {
+                            timeSlotGroups[slot.timeSlot] = [];
+                        }
+                        timeSlotGroups[slot.timeSlot].push(slot);
+                    });
 
-                    if (remainingSlots.length > 0) {
-                        const timeSlotGroups = {};
-                        remainingSlots.forEach(slot => {
-                            if (!timeSlotGroups[slot.timeSlot]) {
-                                timeSlotGroups[slot.timeSlot] = [];
+                    for (const timeSlot of CONFIG.PREFERRED_TIMES) {
+                        if (successfulBookings.length >= currentMaxBookings) break;
+
+                        // 检查该时间段是否已预约
+                        if (successfulBookings.some(booking => booking.timeSlot === timeSlot)) {
+                            continue; // 跳过已预约的时间段
+                        }
+
+                        if (timeSlotGroups[timeSlot]) {
+                            const slotsInTime = timeSlotGroups[timeSlot];
+                            // 重新排序以确保优先级正确
+                            slotsInTime.sort((a, b) => {
+                                if (a.courtPriority !== b.courtPriority) {
+                                    return a.courtPriority - b.courtPriority;
+                                }
+                                return a.venuePriority - b.venuePriority;
+                            });
+
+                            const firstSlot = slotsInTime[0];
+
+                            // 简化选择场地信息显示
+                            let priorityText = "";
+                            if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球" && firstSlot.venueName.includes("至畅")) {
+                                if (firstSlot.courtPriority === -2) {
+                                    priorityText = " 🏆";
+                                } else if (firstSlot.courtPriority === -1) {
+                                    priorityText = " ⭐";
+                                } else if (firstSlot.courtPriority === 2) {
+                                    priorityText = " 🔻";
+                                }
                             }
-                            timeSlotGroups[slot.timeSlot].push(slot);
-                        });
 
-                        for (const timeSlot of CONFIG.PREFERRED_TIMES) {
-                            if (successfulBookings.length >= currentMaxBookings) break;
-                            if (bookedTimeSlots.includes(timeSlot)) continue;
+                            addLog(`🎯 预约: ${firstSlot.venueName}${priorityText}`, 'info');
 
-                            if (timeSlotGroups[timeSlot]) {
-                                const slotsInTime = timeSlotGroups[timeSlot];
-                                // 重新排序以确保优先级正确
-                                slotsInTime.sort((a, b) => {
-                                    if (a.courtPriority !== b.courtPriority) {
-                                        return a.courtPriority - b.courtPriority;
-                                    }
-                                    return a.venuePriority - b.venuePriority;
-                                });
+                            const result = await bookSlot(firstSlot.wid, firstSlot.name);
 
-                                const firstSlot = slotsInTime[0];
-
-                                // 简化选择场地信息显示
-                                let priorityText = "";
-                                if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球" && firstSlot.venueName.includes("至畅")) {
-                                    if (firstSlot.courtPriority === -2) {
-                                        priorityText = " 🏆";
-                                    } else if (firstSlot.courtPriority === -1) {
-                                        priorityText = " ⭐";
-                                    } else if (firstSlot.courtPriority === 2) {
-                                        priorityText = " 🔻";
-                                    }
+                            if (result === true) {
+                                addLog(`✨ ${timeSlot} 预约成功！`, 'success');
+                                if (successfulBookings.length < currentMaxBookings) {
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
                                 }
-
-                                addLog(`🎯 预约: ${firstSlot.venueName}${priorityText}`, 'info');
-
-                                const result = await bookSlot(firstSlot.wid, firstSlot.name);
-
-                                if (result === true) {
-                                    addLog(`✨ ${timeSlot} 预约成功！`, 'success');
-                                    if (successfulBookings.length < currentMaxBookings) {
-                                        await new Promise(resolve => setTimeout(resolve, 1000));
-                                    }
-                                } else if (result === 'limit_reached') {
-                                    break;
-                                } else {
-                                    await new Promise(resolve => setTimeout(resolve, 500));
-                                }
+                            } else if (result === 'limit_reached') {
+                                break;
+                            } else {
+                                await new Promise(resolve => setTimeout(resolve, 500));
                             }
                         }
                     }
@@ -1104,7 +1582,7 @@
         }
     }
 
-    // 停止抢票
+    // 修改停止抢票函数，处理等待状态
     function stopBooking() {
         if (!isRunning) return; // 防止重复调用
 
@@ -1130,29 +1608,107 @@
         addLog(`📊 运行时间: ${elapsed}秒, 查询次数: ${retryCount}`, 'info');
     }
 
-    // 初始化
+    // iOS兼容的初始化检查
+    function checkIOSCompatibility() {
+        const issues = [];
+
+        // 检查存储可用性
+        if (!Storage.set('test', 'test') || Storage.get('test') !== 'test') {
+            issues.push('存储功能受限');
+        }
+
+        // 检查 fetch 支持
+        if (typeof fetch === 'undefined') {
+            issues.push('网络请求不支持');
+        }
+
+        // 检查触摸支持
+        if (isIOS && !isTouchDevice) {
+            issues.push('触摸事件检测异常');
+        }
+
+        if (issues.length > 0) {
+            addLog(`⚠️ iOS兼容性问题: ${issues.join(', ')}`, 'warning');
+            addLog(`💡 建议刷新页面或重启Safari`, 'info');
+        } else {
+            addLog(`✅ iOS兼容性检查通过`, 'success');
+        }
+
+        return issues.length === 0;
+    }
+
+    // 修改初始化函数，增加更多调试信息
     function init() {
-        if (!window.location.href.includes('ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy')) {
+        // 更新 URL 检查逻辑，支持 WebVPN
+        const currentUrl = window.location.href;
+        const isValidUrl = currentUrl.includes('ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy') ||
+            currentUrl.includes('ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy');
+
+        if (!isValidUrl) {
+            console.log('URL 不匹配，退出初始化。当前URL:', currentUrl);
             return;
         }
 
+        console.log('开始初始化...', {
+            isMobile,
+            isIOS,
+            isIPad,
+            isTouchDevice,
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            maxTouchPoints: navigator.maxTouchPoints,
+            hasPointerEvent: !!window.PointerEvent,
+            currentUrl: currentUrl
+        });
+
+        // 检查 PointerEvent 支持
+        if (window.PointerEvent) {
+            console.log('✅ 支持 PointerEvent API');
+        } else {
+            console.log('❌ 不支持 PointerEvent API，使用 TouchEvent');
+        }
+
+        // iOS兼容性检查
+        const isCompatible = checkIOSCompatibility();
+
         // 创建浮动按钮
         floatingButton = createFloatingButton();
+        console.log('浮动按钮创建完成', floatingButton);
 
         // 创建控制面板
         controlPanel = createControlPanel();
+        console.log('控制面板创建完成', controlPanel);
+
         updateDisplayConfig();
 
-        addLog(`🎮 自动抢票助手已就绪！`, 'success');
+        const deviceInfo = isIPad ? 'iPad' : (isMobile ? '移动端' : '桌面端');
+        addLog(`🎮 自动抢票助手已就绪！(${deviceInfo})`, 'success');
+
+        if (isIOS) {
+            addLog(`🍎 iOS优化版本，触摸操作已优化`, 'info');
+            if (window.PointerEvent) {
+                addLog(`🎯 使用 PointerEvent API`, 'info');
+            } else {
+                addLog(`📱 使用 TouchEvent API`, 'info');
+            }
+            if (!isCompatible) {
+                addLog(`⚠️ 发现兼容性问题，建议检查Safari设置`, 'warning');
+            }
+        }
+
         addLog(`📝 已加载配置，可随时修改`, 'info');
-        addLog(`⌨️ 快捷键: Ctrl+Shift+S 开始/停止 | Ctrl+Shift+H 显示/隐藏`, 'info');
+        console.log('初始化完成');
+
+        // 测试面板状态
+        console.log('初始面板状态:', isPanelVisible);
     }
 
-    // 页面加载完成后初始化
+    // 确保页面加载完成后初始化
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        init();
+        // DOM 已经加载完成
+        setTimeout(init, 100); // 稍作延迟以确保页面元素完全就绪
     }
 
 })();
