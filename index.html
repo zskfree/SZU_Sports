@@ -2,8 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>SZU Sports 自动抢票助手</title>
+    <title>SZU Sports 深圳大学体育场馆自动抢票助手</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="深圳大学体育场馆自动抢票脚本，支持羽毛球、篮球等多项目智能预约，iOS/Android移动端完美兼容">
     <style>
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
@@ -14,8 +15,8 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 480px;
-            margin: 60px auto 0 auto;
+            max-width: 520px;
+            margin: 40px auto 0 auto;
             background: rgba(255,255,255,0.08);
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.20);
@@ -24,85 +25,198 @@
         }
         h1 {
             margin-top: 0;
-            font-size: 2.1em;
+            font-size: 2.2em;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.18);
+            margin-bottom: 8px;
+        }
+        .version {
+            font-size: 0.9em;
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-weight: bold;
         }
         .desc {
             font-size: 1.08em;
-            margin: 18px 0 32px 0;
+            margin: 18px 0 24px 0;
             color: #dedede;
+            line-height: 1.6;
         }
         .btn-link {
             display: inline-block;
             background: linear-gradient(45deg, #4caf50, #45a049);
             color: #fff !important;
             border: none;
-            border-radius: 7px;
-            padding: 14px 48px;
+            border-radius: 8px;
+            padding: 16px 48px;
             font-size: 1.15em;
             cursor: pointer;
             font-weight: bold;
-            margin: 18px 0 0 0;
-            box-shadow: 0 4px 16px rgba(76,175,80,0.08);
-            transition: background 0.2s, transform 0.15s;
+            margin: 12px 8px;
+            box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+            transition: all 0.2s;
             text-decoration: none;
+            min-width: 200px;
         }
         .btn-link:hover {
             background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
             transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 6px 20px rgba(76,175,80,0.4);
         }
         .btn-secondary-link {
             display: inline-block;
             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
             color: #fff !important;
             border: none;
-            border-radius: 7px;
-            padding: 12px 36px;
+            border-radius: 8px;
+            padding: 14px 36px;
             font-size: 1em;
             cursor: pointer;
             font-weight: bold;
-            margin: 16px 0 0 0;
-            box-shadow: 0 4px 16px rgba(102,126,234,0.09);
-            transition: background 0.2s, transform 0.15s;
+            margin: 8px 8px;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.2);
+            transition: all 0.2s;
             text-decoration: none;
         }
         .btn-secondary-link:hover {
             background: linear-gradient(45deg, #5a5ae6 60%, #764ba2 100%);
             transform: translateY(-2px) scale(1.03);
         }
+        .url-display {
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .url-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+        .url-text {
+            word-break: break-all;
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: rgba(0,0,0,0.2);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
         .usage {
-            background: rgba(0,0,0,0.10);
-            border-radius: 9px;
-            padding: 12px 18px;
-            margin: 26px 0 16px 0;
+            background: rgba(0,0,0,0.12);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 26px 0 20px 0;
             color: #f4f4fa;
             font-size: 1em;
             text-align: left;
-            max-width: 360px;
-            margin-left: auto;
-            margin-right: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .usage-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #ffd700;
+        }
+        .usage-step {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .usage-step:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
         }
         .feature-list {
             text-align: left;
             margin: 30px auto 0 auto;
-            max-width: 350px;
+            max-width: 480px;
             color: #ebebfa;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .feature-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #ffd700;
+            text-align: center;
         }
         .feature-list li {
-            margin: 10px 0;
+            margin: 12px 0;
             font-size: 1em;
+            padding-left: 8px;
+        }
+        .highlight {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .tech-specs {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 26px 0;
+            color: #dedede;
+            font-size: 0.95em;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .tech-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #ffd700;
+            text-align: center;
+        }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .tech-item {
+            background: rgba(0,0,0,0.1);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #4caf50;
         }
         .footer {
             text-align: center;
-            margin: 44px 0 10px 0;
+            margin: 44px 0 20px 0;
             color: #b3b3c6;
             font-size: 0.92em;
             opacity: 0.8;
         }
-        @media (max-width: 520px) {
+        .footer a {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: #ffd700;
+        }
+        @media (max-width: 580px) {
             .container {
-                margin: 20px 4px;
-                padding: 18px 5px;
+                margin: 20px 10px;
+                padding: 24px 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .btn-link, .btn-secondary-link {
+                display: block;
+                margin: 12px 0;
+                width: calc(100% - 16px);
+            }
+            .tech-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -110,38 +224,113 @@
 <body>
     <div class="container">
         <h1>🎾 SZU Sports 自动抢票助手</h1>
+        <div class="version">v1.1.4 - iOS/Android/桌面端全平台兼容版</div>
+        
         <div class="desc">
-            深圳大学体育场馆自动抢票脚本，<br>
-            支持个性化预约、快捷键操作和状态日志，<br>
-            助你轻松预约运动场馆，操作简单高效。
+            深圳大学体育场馆智能抢票脚本<br>
+            支持<span class="highlight">多项目预约</span>、<span class="highlight">场馆优选</span>、<span class="highlight">移动端优化</span><br>
+            助你轻松预约心仪的运动场馆，操作简单高效
         </div>
-        <!-- 取消深大预约页面跳转按钮，仅文案保留 -->
-        <div class="btn-link" style="background:rgba(76,175,80,0.25);color:#e0e0e0;cursor:default;">
-            深大场馆预约页面：<br>
-            <span style="font-size:0.97em;word-break:break-all;">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</span>
-        </div>
-        <br>
-        <a class="btn-secondary-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank" rel="noopener">
-            油猴脚本安装页面
+
+        <!-- 主要操作按钮 -->
+        <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank" rel="noopener">
+            🚀 安装油猴脚本
         </a>
-        <div class="usage">
-            <strong>使用方式：</strong><br>
-            1. <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">安装 Tampermonkey（油猴插件）</a><br>
-            2. 点击上方“油猴脚本安装页面”，在 Greasy Fork 上安装本项目脚本<br>
-            3. 复制上方“深大场馆预约页面”链接，在浏览器中手动打开，即可自动启用助手<br>
-            4. 配置参数后，按 <b>Ctrl+Shift+S</b> 开始/停止抢票，<b>Ctrl+Shift+H</b> 显示/隐藏面板
+        
+        <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank" rel="noopener">
+            📚 查看项目文档
+        </a>
+
+        <!-- 预约页面地址显示 -->
+        <div class="url-display">
+            <div class="url-title">📍 深大场馆预约页面地址</div>
+            <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
+            <div style="font-size: 0.85em; margin-top: 8px; color: #bbb;">
+                💡 安装脚本后，访问此页面即可自动启用助手
+            </div>
         </div>
-        <ul class="feature-list">
-            <li>⚡ 自动预约指定日期、项目、时间段</li>
-            <li>👤 支持自定义用户信息与参数配置</li>
-            <li>📅 预约日期、校区、时段灵活选择</li>
-            <li>🔄 多次自动重试，提升预约成功率</li>
-            <li>⌨️ 快捷键控制面板显示/隐藏与操作</li>
-            <li>📝 实时状态日志反馈与进度跟踪</li>
-        </ul>
+
+        <!-- 使用说明 -->
+        <div class="usage">
+            <div class="usage-title">📖 快速上手指南</div>
+            <div class="usage-step">
+                <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">安装 Tampermonkey（油猴插件）</a>
+                - 支持Chrome、Firefox、Safari等浏览器
+            </div>
+            <div class="usage-step">
+                点击上方"安装油猴脚本"按钮，在 Greasy Fork 上安装本脚本
+            </div>
+            <div class="usage-step">
+                复制上方预约页面地址，在浏览器中打开（需要先登录统一身份认证）
+            </div>
+            <div class="usage-step">
+                配置个人信息和预约偏好，点击<strong>🚀 开始抢票</strong>即可
+            </div>
+            <div class="usage-step">
+                桌面端快捷键：<strong>Ctrl+Shift+S</strong> 开始/停止，<strong>Ctrl+Shift+H</strong> 显示/隐藏面板
+            </div>
+        </div>
+
+        <!-- 核心功能特性 -->
+        <div class="feature-list">
+            <div class="feature-title">🌟 核心功能特性</div>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li>🎯 <strong>智能预约</strong> - 支持羽毛球、篮球、网球等7个运动项目</li>
+                <li>🏟️ <strong>场馆优选</strong> - 羽毛球支持至畅/至快场馆选择，5号/10号场地优先</li>
+                <li>� <strong>移动端优化</strong> - 完美支持iOS Safari、Android Chrome等移动浏览器</li>
+                <li>🔄 <strong>智能重试</strong> - 自适应重试间隔，网络异常自动恢复</li>
+                <li>⏰ <strong>时间管理</strong> - 自动更新预约日期为明天，支持多时段优先级排序</li>
+                <li>� <strong>配置保存</strong> - 个人偏好设置自动保存，支持跨设备同步</li>
+                <li>📊 <strong>实时监控</strong> - 详细状态日志，预约进度一目了然</li>
+                <li>🛡️ <strong>错误恢复</strong> - 内置错误处理机制，提高预约成功率</li>
+            </ul>
+        </div>
+
+        <!-- 技术规格 -->
+        <div class="tech-specs">
+            <div class="tech-title">⚙️ 技术规格与兼容性</div>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <strong>📱 移动端支持</strong><br>
+                    iOS Safari 14+<br>
+                    Android Chrome 80+<br>
+                    触摸操作优化
+                </div>
+                <div class="tech-item">
+                    <strong>💻 桌面端支持</strong><br>
+                    Chrome 90+<br>
+                    Firefox 88+<br>
+                    Edge 90+
+                </div>
+                <div class="tech-item">
+                    <strong>🔧 核心技术</strong><br>
+                    ES6+ JavaScript<br>
+                    Fetch API<br>
+                    Touch/Pointer Events
+                </div>
+                <div class="tech-item">
+                    <strong>� 性能优化</strong><br>
+                    请求频率控制<br>
+                    内存自动清理<br>
+                    电池状态监控
+                </div>
+            </div>
+        </div>
+
+        <!-- 项目信息 -->
         <div class="footer">
-            项目地址：<a href="https://github.com/zskfree/SZU_Sports" target="_blank" style="color:#fff;text-decoration:underline;">GitHub - zskfree/SZU_Sports</a><br>
-            Made by zskfree | 2025
+            <div style="margin-bottom: 12px;">
+                <strong>🎯 支持的运动项目：</strong><br>
+                羽毛球 • 篮球 • 网球 • 排球 • 游泳 • 乒乓球 • 桌球
+            </div>
+            <div style="margin-bottom: 12px;">
+                <strong>🏫 支持的校区：</strong> 粤海校区 • 丽湖校区
+            </div>
+            <div>
+                项目地址：<a href="https://github.com/zskfree/SZU_Sports" target="_blank">GitHub - zskfree/SZU_Sports</a><br>
+                脚本更新：<a href="https://greasyfork.org/zh-CN/scripts/537386" target="_blank">Greasy Fork</a><br>
+                Made with ❤️ by zskfree | 2025
+            </div>
         </div>
     </div>
 </body>
