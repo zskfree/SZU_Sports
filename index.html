@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <title>SZU Sports 深圳大学体育场馆自动抢票助手</title>
@@ -14,33 +15,38 @@
             padding: 0;
             min-height: 100vh;
         }
+
         .container {
             max-width: 520px;
             margin: 40px auto 0 auto;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.20);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.20);
             padding: 32px 26px;
             text-align: center;
         }
+
         h1 {
             margin-top: 0;
             font-size: 2.2em;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.18);
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.18);
             margin-bottom: 8px;
         }
+
         .version {
             font-size: 0.9em;
             color: #ffd700;
             margin-bottom: 20px;
             font-weight: bold;
         }
+
         .desc {
             font-size: 1.08em;
             margin: 18px 0 24px 0;
             color: #dedede;
             line-height: 1.6;
         }
+
         .btn-link {
             display: inline-block;
             background: linear-gradient(45deg, #4caf50, #45a049);
@@ -52,16 +58,18 @@
             cursor: pointer;
             font-weight: bold;
             margin: 12px 8px;
-            box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
             transition: all 0.2s;
             text-decoration: none;
             min-width: 200px;
         }
+
         .btn-link:hover {
             background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
             transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 6px 20px rgba(76,175,80,0.4);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
+
         .btn-secondary-link {
             display: inline-block;
             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
@@ -73,57 +81,104 @@
             cursor: pointer;
             font-weight: bold;
             margin: 8px 8px;
-            box-shadow: 0 4px 16px rgba(102,126,234,0.2);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
             transition: all 0.2s;
             text-decoration: none;
         }
+
         .btn-secondary-link:hover {
             background: linear-gradient(45deg, #5a5ae6 60%, #764ba2 100%);
             transform: translateY(-2px) scale(1.03);
         }
+
         .url-display {
-            background: rgba(0,0,0,0.15);
+            background: rgba(0, 0, 0, 0.15);
             border-radius: 8px;
             padding: 16px;
             margin: 20px 0;
             color: #e0e0e0;
             font-size: 0.95em;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .url-title {
             font-weight: bold;
             margin-bottom: 8px;
             color: #ffd700;
         }
+
         .url-text {
             word-break: break-all;
             font-family: 'Consolas', 'Monaco', monospace;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             padding: 8px;
             border-radius: 4px;
             font-size: 0.9em;
         }
+
+        .url-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            margin: 8px 0;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .url-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .url-link:hover .url-text {
+            background: rgba(76, 175, 80, 0.15);
+            border-left: 3px solid #4caf50;
+        }
+
+        .url-text {
+            word-break: break-all;
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .url-label {
+            font-size: 0.8em;
+            color: #4caf50;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
         .usage {
-            background: rgba(0,0,0,0.12);
+            background: rgba(0, 0, 0, 0.12);
             border-radius: 10px;
             padding: 20px;
             margin: 26px 0 20px 0;
             color: #f4f4fa;
             font-size: 1em;
             text-align: left;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .usage-title {
             font-weight: bold;
             font-size: 1.1em;
             margin-bottom: 12px;
             color: #ffd700;
         }
+
         .usage-step {
             margin: 8px 0;
             padding-left: 20px;
             position: relative;
         }
+
         .usage-step:before {
             content: "•";
             position: absolute;
@@ -131,16 +186,18 @@
             color: #4caf50;
             font-weight: bold;
         }
+
         .feature-list {
             text-align: left;
             margin: 30px auto 0 auto;
             max-width: 480px;
             color: #ebebfa;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .feature-title {
             font-weight: bold;
             font-size: 1.1em;
@@ -148,11 +205,13 @@
             color: #ffd700;
             text-align: center;
         }
+
         .feature-list li {
             margin: 12px 0;
             font-size: 1em;
             padding-left: 8px;
         }
+
         .highlight {
             background: linear-gradient(45deg, #ff6b6b, #ee5a52);
             color: white;
@@ -160,15 +219,17 @@
             border-radius: 4px;
             font-weight: bold;
         }
+
         .tech-specs {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
             padding: 20px;
             margin: 26px 0;
             color: #dedede;
             font-size: 0.95em;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .tech-title {
             font-weight: bold;
             font-size: 1.1em;
@@ -176,18 +237,21 @@
             color: #ffd700;
             text-align: center;
         }
+
         .tech-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 12px;
             margin-top: 12px;
         }
+
         .tech-item {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
             padding: 12px;
             border-radius: 6px;
             border-left: 3px solid #4caf50;
         }
+
         .footer {
             text-align: center;
             margin: 44px 0 20px 0;
@@ -195,48 +259,58 @@
             font-size: 0.92em;
             opacity: 0.8;
         }
+
         .footer a {
             color: #fff;
             text-decoration: underline;
         }
+
         .footer a:hover {
             color: #ffd700;
         }
+
         @media (max-width: 580px) {
             .container {
                 margin: 20px 10px;
                 padding: 24px 20px;
             }
+
             h1 {
                 font-size: 1.8em;
             }
-            .btn-link, .btn-secondary-link {
+
+            .btn-link,
+            .btn-secondary-link {
                 display: block;
                 margin: 12px 0;
                 width: calc(100% - 16px);
             }
+
             .tech-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🎾 SZU Sports 自动抢票助手</h1>
         <div class="version">v1.1.4 - iOS/Android/桌面端全平台兼容版</div>
-        
+
         <div class="desc">
             深圳大学体育场馆智能抢票脚本<br>
-            支持<span class="highlight">多项目预约</span>、<span class="highlight">场馆优选</span>、<span class="highlight">移动端优化</span><br>
+            支持<span class="highlight">多项目预约</span>、<span class="highlight">场馆优选</span>、<span
+                class="highlight">移动端优化</span><br>
             助你轻松预约心仪的运动场馆，操作简单高效
         </div>
 
         <!-- 主要操作按钮 -->
-        <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank" rel="noopener">
+        <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank"
+            rel="noopener">
             🚀 安装油猴脚本
         </a>
-        
+
         <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank" rel="noopener">
             📚 查看项目文档
         </a>
@@ -244,9 +318,19 @@
         <!-- 预约页面地址显示 -->
         <div class="url-display">
             <div class="url-title">📍 深大场馆预约页面地址</div>
-            <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
-            <div style="font-size: 0.85em; margin-top: 8px; color: #bbb;">
-                💡 安装脚本后，访问此页面即可自动启用助手
+            <a href="https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue" target="_blank" rel="noopener"
+                class="url-link">
+                <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
+                </div>
+                <div class="url-label highlight">🔗 WebVPN访问(有无校园网均可预约付款) - 推荐访问</div>
+            </a>
+            <a href="https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue" target="_blank"
+                rel="noopener" class="url-link">
+                <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
+                <div class="url-label">🌐 任何网络直连(无校园网环境可预约但无法付款) - 点击访问</div>
+            </a>
+            <div style="font-size: 0.85em; margin-top: 12px; color: #bbb;">
+                💡 安装脚本后，访问任一页面即可自动启用助手
             </div>
         </div>
 
@@ -254,7 +338,8 @@
         <div class="usage">
             <div class="usage-title">📖 快速上手指南</div>
             <div class="usage-step">
-                <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">安装 Tampermonkey（油猴插件）</a>
+                <a href="https://www.tampermonkey.net/" target="_blank" style="color:#fff;text-decoration:underline;">安装
+                    Tampermonkey（油猴插件）</a>
                 - 支持Chrome、Firefox、Safari等浏览器
             </div>
             <div class="usage-step">
@@ -334,4 +419,5 @@
         </div>
     </div>
 </body>
+
 </html>
