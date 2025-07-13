@@ -122,16 +122,16 @@
             transition: all 0.2s ease;
             border-radius: 6px;
             overflow: hidden;
+            cursor: pointer;
+            user-select: none;
         }
 
-        .url-link:hover,
-        .url-link:active {
+        .url-link:hover, .url-link:active {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
 
-        .url-link:hover .url-text,
-        .url-link:active .url-text {
+        .url-link:hover .url-text, .url-link:active .url-text {
             background: rgba(76, 175, 80, 0.15);
             border-left: 3px solid #4caf50;
         }
@@ -155,6 +155,18 @@
             margin-top: 6px;
             font-weight: bold;
             line-height: 1.3;
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            .url-link:hover {
+                transform: none;
+            }
+
+            .url-link:active {
+                transform: scale(0.98);
+                background: rgba(76, 175, 80, 0.1);
+            }
         }
 
         .usage {
@@ -400,22 +412,26 @@
         <!-- 预约页面地址显示 -->
         <div class="url-display">
             <div class="url-title">📍 深大场馆预约页面地址</div>
-            <a href="https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue" target="_blank"
-                rel="noopener" class="url-link">
+            <div class="url-link" onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
                 <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
-                <div class="url-label highlight">🌐 校园网直连访问 - 推荐使用</div>
-            </a>
-            <a href="https://webvpn.szu.edu.cn" target="_blank" rel="noopener" class="url-link">
+                <div class="url-label highlight">🌐 校园网直连访问 - 点击复制链接</div>
+            </div>
+            <div class="url-link" onclick="copyToClipboard('https://webvpn.szu.edu.cn')">
                 <div class="url-text">https://webvpn.szu.edu.cn</div>
-                <div class="url-label">🔗 WebVPN首页 - 校外网络使用</div>
-            </a>
+                <div class="url-label">🔗 WebVPN首页 - 点击复制链接</div>
+            </div>
             <div style="font-size: 0.8em; margin-top: 12px; color: #bbb; line-height: 1.4;">
-                💡 <strong>校外网络使用步骤：</strong><br>
-                1️⃣ 点击上方WebVPN首页，登录后进入WebVPN系统<br>
-                2️⃣ 在WebVPN内进入“内部网”<br>
-                3️⃣ 进入“内部网”，点击"体育场馆"<br>
+                💡 <strong>使用说明：</strong><br>
+                📋 点击上方链接自动复制到剪贴板，然后粘贴到浏览器地址栏<br>
+                🏫 <strong>校园网：</strong>直接使用第一个链接<br>
+                🌐 <strong>校外网络：</strong>先访问WebVPN首页 → 登录 → 进入"内部网" → 找到"体育场馆"<br>
                 💡 安装脚本后，访问预约页面即可自动启用助手
             </div>
+        </div>
+
+        <!-- 复制成功提示 -->
+        <div id="copyNotification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(76, 175, 80, 0.9); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+            ✅ 链接已复制到剪贴板
         </div>
 
         <!-- 使用说明 -->
@@ -505,6 +521,77 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        function copyToClipboard(text) {
+            // 创建临时文本区域
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+
+            try {
+                // 选择并复制文本
+                textArea.focus();
+                textArea.select();
+                document.execCommand('copy');
+
+                // 显示复制成功提示
+                showNotification();
+
+                // 添加视觉反馈
+                addCopyFeedback(event.currentTarget);
+
+            } catch (err) {
+                // 降级处理：使用现代API
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showNotification();
+                        addCopyFeedback(event.currentTarget);
+                    }).catch(() => {
+                        // 最后的降级方案：提示用户手动复制
+                        alert('请手动复制链接：' + text);
+                    });
+                } else {
+                    alert('请手动复制链接：' + text);
+                }
+            } finally {
+                // 清理临时元素
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function showNotification() {
+            const notification = document.getElementById('copyNotification');
+            notification.style.display = 'block';
+
+            // 2秒后自动隐藏
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+
+        function addCopyFeedback(element) {
+            // 添加复制成功的视觉反馈
+            const originalBg = element.style.background;
+            element.style.background = 'rgba(76, 175, 80, 0.2)';
+            element.style.transform = 'scale(0.98)';
+
+            setTimeout(() => {
+                element.style.background = originalBg;
+                element.style.transform = 'none';
+            }, 200);
+        }
+
+        // 添加键盘支持（回车键复制）
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.target.classList.contains('url-link')) {
+                e.target.click();
+            }
+        });
+    </script>
 </body>
 
 </html>
