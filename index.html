@@ -6,6 +6,14 @@
     <title>SZU Sports 深圳大学体育场馆自动抢票助手</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="深圳大学体育场馆自动抢票脚本，支持羽毛球、篮球等多项目智能预约，iOS/Android移动端完美兼容">
+    <meta name="keywords" content="深圳大学,体育场馆,自动抢票,羽毛球,篮球,油猴脚本,Tampermonkey">
+    <meta name="author" content="zskfree">
+    <meta property="og:title" content="SZU Sports - 深圳大学体育场馆智能抢票助手">
+    <meta property="og:description" content="专为深圳大学场馆预约系统开发的智能化油猴脚本，支持多项目预约、跨平台兼容、移动端优化">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/zskfree/SZU_Sports">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎾</text></svg>">
     <style>
         * {
             box-sizing: border-box;
@@ -14,22 +22,63 @@
         body {
             font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             color: #fff;
             margin: 0;
             padding: 0;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        /* 添加动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200px 0;
+            }
+
+            100% {
+                background-position: calc(200px + 100%) 0;
+            }
         }
 
         .container {
             max-width: 520px;
             margin: 20px auto;
             background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.20);
             padding: 24px 20px;
             text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h1 {
@@ -76,25 +125,61 @@
             background: linear-gradient(45deg, #4caf50, #45a049);
             color: #fff !important;
             box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-link:hover::before {
+            left: 100%;
         }
 
         .btn-link:hover,
         .btn-link:active {
             background: linear-gradient(45deg, #45a049 60%, #4caf50 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+            animation: pulse 2s infinite;
         }
 
         .btn-secondary-link {
             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
             color: #fff !important;
             box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-secondary-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-secondary-link:hover::before {
+            left: 100%;
         }
 
         .btn-secondary-link:hover,
         .btn-secondary-link:active {
             background: linear-gradient(45deg, #5a5ae6 60%, #764ba2 100%);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         .url-display {
@@ -126,12 +211,14 @@
             user-select: none;
         }
 
-        .url-link:hover, .url-link:active {
+        .url-link:hover,
+        .url-link:active {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
 
-        .url-link:hover .url-text, .url-link:active .url-text {
+        .url-link:hover .url-text,
+        .url-link:active .url-text {
             background: rgba(76, 175, 80, 0.15);
             border-left: 3px solid #4caf50;
         }
@@ -208,9 +295,18 @@
             margin: 30px 0;
             color: #ebebfa;
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             padding: 20px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-list:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .feature-title {
@@ -244,12 +340,21 @@
 
         .tech-specs {
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             border-radius: 10px;
             padding: 20px;
             margin: 26px 0;
             color: #dedede;
             font-size: 0.9em;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .tech-specs:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .tech-title {
@@ -273,6 +378,30 @@
             border-radius: 6px;
             border-left: 3px solid #4caf50;
             line-height: 1.4;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .tech-item:hover {
+            background: rgba(0, 0, 0, 0.15);
+            transform: translateX(5px);
+            border-left-color: #66bb6a;
+        }
+
+        .tech-item:hover::before {
+            left: 100%;
         }
 
         .footer {
@@ -370,6 +499,88 @@
             }
         }
 
+        /* 添加加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 添加滚动进度条 */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, #4caf50, #66bb6a);
+            z-index: 1000;
+            transition: width 0.1s ease;
+        }
+
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
         /* 触摸设备优化 */
         @media (hover: none) and (pointer: coarse) {
 
@@ -388,9 +599,20 @@
 </head>
 
 <body>
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 滚动进度条 -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+
     <div class="container">
         <h1>🎾 SZU Sports 自动抢票助手</h1>
-        <div class="version">v1.1.4 - iOS/Android/桌面端全平台兼容版</div>
+        <div class="version">v1.1.5 - iOS/Android/桌面端全平台兼容版</div>
 
         <div class="desc">
             深圳大学体育场馆智能抢票脚本<br>
@@ -412,12 +634,15 @@
         <!-- 预约页面地址显示 -->
         <div class="url-display">
             <div class="url-title">📍 深大场馆预约页面地址</div>
-            <div class="url-link" onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
+            <div class="url-link"
+                onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
                 <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
                 <div class="url-label highlight">🌐 校园网直连访问 - 点击复制链接</div>
             </div>
-            <div class="url-link" onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
-                <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
+            <div class="url-link"
+                onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
+                <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
+                </div>
                 <div class="url-label">🔗 WebVPN首页 - 点击复制链接</div>
             </div>
             <div style="font-size: 0.8em; margin-top: 12px; color: #bbb; line-height: 1.4;">
@@ -430,7 +655,8 @@
         </div>
 
         <!-- 复制成功提示 -->
-        <div id="copyNotification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(76, 175, 80, 0.9); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+        <div id="copyNotification"
+            style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(76, 175, 80, 0.9); color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             ✅ 链接已复制到剪贴板
         </div>
 
@@ -521,7 +747,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         function copyToClipboard(text) {
             // 创建临时文本区域
@@ -590,6 +816,95 @@
             if (e.key === 'Enter' && e.target.classList.contains('url-link')) {
                 e.target.click();
             }
+        });
+
+        // 页面加载完成后隐藏加载动画
+        window.addEventListener('load', function () {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }, 800);
+        });
+
+        // 滚动进度条
+        window.addEventListener('scroll', function () {
+            const scrollProgress = document.getElementById('scrollProgress');
+            const backToTop = document.getElementById('backToTop');
+
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / scrollHeight) * 100;
+
+            scrollProgress.style.width = scrollPercent + '%';
+
+            // 显示/隐藏返回顶部按钮
+            if (scrollTop > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        // 返回顶部功能
+        document.getElementById('backToTop').addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 添加平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 添加视差效果（可选）
+        window.addEventListener('scroll', function () {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.container');
+            const speed = scrolled * 0.1;
+
+            if (parallax) {
+                parallax.style.transform = `translateY(${speed}px)`;
+            }
+        });
+
+        // 添加元素进入视口动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察需要动画的元素
+        document.addEventListener('DOMContentLoaded', function () {
+            const animatedElements = document.querySelectorAll('.feature-list, .tech-specs, .usage');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
         });
     </script>
 </body>
