@@ -2,7 +2,7 @@
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
 
-// @version      1.1.4
+// @version      1.1.5
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -39,7 +39,7 @@
             const data = {
                 value: value,
                 timestamp: Date.now(),
-                version: '1.1.4'
+                version: '1.1.5'
             };
             
             let serializedData = JSON.stringify(data);
@@ -97,8 +97,8 @@
                     const data = JSON.parse(item);
                     
                     // 检查版本兼容性
-                    if (data.version && data.version !== '1.1.4') {
-                        console.warn(`配置版本不匹配: ${data.version} -> 1.1.4，使用默认值`);
+                    if (data.version && data.version !== '1.1.5') {
+                        console.warn(`配置版本不匹配: ${data.version} -> 1.1.5，使用默认值`);
                         this.remove(key); // 清理旧版本数据
                         return defaultValue;
                     }
@@ -464,28 +464,28 @@
         baseInterval: 1000, // 基础间隔1秒
         maxInterval: 30000, // 最大间隔30秒
         adaptiveMode: true,
-        
+
         // 重置重试状态
-        reset: function() {
+        reset: function () {
             this.consecutiveFailures = 0;
             this.lastSuccessTime = Date.now();
             this.baseInterval = CONFIG.RETRY_INTERVAL * 1000;
             addLog(`🔄 重试机制已重置`, 'info');
         },
-        
+
         // 记录成功
-        onSuccess: function() {
+        onSuccess: function () {
             if (this.consecutiveFailures > 0) {
                 addLog(`✅ 恢复正常，重置重试策略`, 'success');
             }
             this.consecutiveFailures = 0;
             this.lastSuccessTime = Date.now();
         },
-        
+
         // 记录失败
-        onFailure: function(errorType = 'unknown') {
+        onFailure: function (errorType = 'unknown') {
             this.consecutiveFailures++;
-            
+
             // 根据错误类型调整策略
             if (errorType === 'rate_limit') {
                 this.consecutiveFailures = Math.min(this.consecutiveFailures + 2, 10); // 限频错误加重惩罚
@@ -493,68 +493,53 @@
                 this.consecutiveFailures = Math.min(this.consecutiveFailures + 1, 8);
             }
         },
-        
+
         // 获取下一次重试间隔
-        getNextInterval: function() {
+        getNextInterval: function () {
             if (this.consecutiveFailures === 0) {
                 return this.baseInterval;
             }
-            
+
             // 指数退避，但有上限
             const backoffMultiplier = Math.min(Math.pow(1.5, this.consecutiveFailures), 20);
             const interval = Math.min(this.baseInterval * backoffMultiplier, this.maxInterval);
-            
+
             // 添加随机抖动，避免所有客户端同时重试
             const jitter = Math.random() * 0.3 + 0.85; // 85%-115%的随机抖动
-            
+
             return Math.floor(interval * jitter);
         },
-        
-        // 判断是否应该继续重试
-        shouldContinue: function() {
-            // 连续失败次数限制
+
+        // 判断是否应该继续重试 - 修改为始终返回true
+        shouldContinue: function () {
+            // 只在连续失败过多时给出提示，但不停止
             if (this.consecutiveFailures >= 15) {
-                addLog(`❌ 连续失败${this.consecutiveFailures}次，暂停重试`, 'error');
-                return false;
+                addLog(`⚠️ 连续失败${this.consecutiveFailures}次，但继续尝试`, 'warning');
             }
-            
-            // 长时间无成功限制
+
+            // 移除长时间无成功的限制，只给出提示
             const timeSinceLastSuccess = Date.now() - this.lastSuccessTime;
             if (timeSinceLastSuccess > 10 * 60 * 1000) { // 10分钟
-                addLog(`⏰ 超过10分钟无成功响应，建议检查网络`, 'warning');
-                if (this.consecutiveFailures >= 8) {
-                    return false;
-                }
+                addLog(`⏰ 超过10分钟无成功响应，继续尝试中...`, 'warning');
             }
-            
+
+            // 始终返回true，让程序按照用户设置的MAX_RETRY_TIMES运行
             return true;
         },
-        
-        // 获取重试建议
-        getRetryAdvice: function() {
-            if (this.consecutiveFailures >= 5) {
-                return {
-                    shouldPause: true,
-                    pauseDuration: 30000, // 30秒
-                    message: '检测到连续失败，建议暂停30秒后重试'
-                };
-            } else if (this.consecutiveFailures >= 3) {
-                return {
-                    shouldPause: false,
-                    message: '连续失败，已启用退避策略'
-                };
-            }
-            
+
+        // 获取重试建议 - 移除暂停机制，直接按参数运行
+        getRetryAdvice: function () {
             return {
                 shouldPause: false,
-                message: '正常重试'
+                pauseDuration: 0,
+                message: '按设定参数持续运行'
             };
         },
-        
+
         // 动态调整重试间隔
-        updateInterval: function() {
+        updateInterval: function () {
             if (!this.adaptiveMode) return;
-            
+
             // 根据当前时间调整间隔
             const hour = new Date().getHours();
             if (hour >= 12 && hour <= 13) {
@@ -565,6 +550,7 @@
             }
         }
     };
+
 
     // 添加移动端专用功能
     const MobileOptimization = {
@@ -1343,7 +1329,7 @@
         panel.innerHTML = `
         <div style="margin-bottom: 15px; text-align: center; position: relative;">
             <h3 style="margin: 0; font-size: ${isMobile ? '20px' : '18px'}; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                🎾 自动抢票助手 v1.1.4
+                🎾 自动抢票助手 v1.1.5
             </h3>
             <button id="close-panel" style="
                 position: absolute;
@@ -1971,13 +1957,13 @@
         // 运行参数验证
         if (CONFIG.RETRY_INTERVAL < 1 || CONFIG.RETRY_INTERVAL > 60) {
             errors.push('查询间隔应在1-60秒之间');
-        } else if (CONFIG.RETRY_INTERVAL < 3) {
-            warnings.push('查询间隔过短可能被系统限制，建议设置3秒以上');
+        } else if (CONFIG.RETRY_INTERVAL < 1) {
+            warnings.push('查询间隔过短，建议设置1秒以上');
         }
 
         if (CONFIG.MAX_RETRY_TIMES < 10 || CONFIG.MAX_RETRY_TIMES > 999999) {
             errors.push('最大重试次数应在10-999999之间');
-        } else if (CONFIG.MAX_RETRY_TIMES > 1000) {
+        } else if (CONFIG.MAX_RETRY_TIMES > 999999) {
             warnings.push('最大重试次数过高，可能影响系统性能');
         }
 
@@ -2528,28 +2514,28 @@
         }
     }
 
-    // 更新 startBooking 函数，集成智能重试机制
+    // 更新 startBooking 函数，移除退出机制
     async function startBooking() {
         if (isRunning) return;
-        
+
         isRunning = true;
         retryCount = 0;
         startTime = new Date();
         const currentMaxBookings = getMaxBookings();
-        
+
         // 重置重试机制
         SmartRetry.reset();
         SmartRetry.updateInterval();
-        
+
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.textContent = '⏹️ 停止抢票';
             startBtn.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
         }
-        
+
         addLog(`🚀 开始自动抢票！`, 'success');
         addLog(`📊 ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${CONFIG.TARGET_DATE} | 目标: ${currentMaxBookings} 个时段`, 'info');
-        
+
         // 添加场馆选择提示
         if (CONFIG.SPORT === "羽毛球") {
             if (CONFIG.PREFERRED_VENUE === "全部") {
@@ -2557,36 +2543,32 @@
             } else {
                 addLog(`🏟️ 场馆策略: 仅${CONFIG.PREFERRED_VENUE}体育馆`, 'info');
             }
-            
+
             if (CONFIG.CAMPUS === "丽湖" && (CONFIG.PREFERRED_VENUE === "至畅" || CONFIG.PREFERRED_VENUE === "全部")) {
                 addLog(`🎾 至畅场地优先级: 5号 > 10号 > 其他 > 1号/6号`, 'info');
             }
         }
-        
+
         try {
             // 检查是否需要等待到特定时间
             await waitForBookingTime();
-            
+
             if (!isRunning) return;
-            
+
             // 重新设置开始时间（排除等待时间）
             startTime = new Date();
             addLog(`⚡ 正式开始抢票循环！`, 'success');
-            
+
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
                 if (successfulBookings.length >= currentMaxBookings) {
                     addLog(`🎊 恭喜！已成功预约 ${currentMaxBookings} 个时间段！`, 'success');
                     break;
                 }
-                
-                // 检查是否应该继续重试
-                if (!SmartRetry.shouldContinue()) {
-                    addLog(`❌ 重试机制建议停止`, 'error');
-                    break;
-                }
-                
+
+                // 移除 shouldContinue 检查，让程序按用户设置运行
+
                 retryCount++;
-                
+
                 // 获取重试建议
                 const advice = SmartRetry.getRetryAdvice();
                 if (advice.shouldPause && retryCount > 1) {
@@ -2594,25 +2576,25 @@
                     await new Promise(resolve => setTimeout(resolve, advice.pauseDuration));
                     if (!isRunning) break;
                 }
-                
+
                 // 简化查询进度显示
                 if (retryCount === 1 || retryCount % 10 === 0 || retryCount <= 5) {
                     addLog(`🔍 第 ${retryCount} 次查询 (${successfulBookings.length}/${currentMaxBookings})`);
                 }
-                
+
                 try {
                     const availableSlots = await getAvailableSlots();
-                    
+
                     if (availableSlots.length > 0) {
                         SmartRetry.onSuccess(); // 记录成功
-                        
+
                         // 简化找到场地的提示
                         if (availableSlots.length <= 5) {
                             addLog(`🎉 找到 ${availableSlots.length} 个可预约时段`, 'success');
                         } else {
                             addLog(`🎉 找到 ${availableSlots.length} 个可预约时段 (显示前5个)`, 'success');
                         }
-                        
+
                         // 预约逻辑保持不变...
                         const timeSlotGroups = {};
                         availableSlots.forEach(slot => {
@@ -2621,14 +2603,14 @@
                             }
                             timeSlotGroups[slot.timeSlot].push(slot);
                         });
-                        
+
                         for (const timeSlot of CONFIG.PREFERRED_TIMES) {
                             if (successfulBookings.length >= currentMaxBookings) break;
-                            
+
                             if (successfulBookings.some(booking => booking.timeSlot === timeSlot)) {
                                 continue;
                             }
-                            
+
                             if (timeSlotGroups[timeSlot]) {
                                 const slotsInTime = timeSlotGroups[timeSlot];
                                 slotsInTime.sort((a, b) => {
@@ -2637,9 +2619,9 @@
                                     }
                                     return a.venuePriority - b.venuePriority;
                                 });
-                                
+
                                 const firstSlot = slotsInTime[0];
-                                
+
                                 let priorityText = "";
                                 if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球" && firstSlot.venueName.includes("至畅")) {
                                     if (firstSlot.courtPriority === -2) {
@@ -2650,11 +2632,11 @@
                                         priorityText = " 🔻";
                                     }
                                 }
-                                
+
                                 addLog(`🎯 预约: ${firstSlot.venueName}${priorityText}`, 'info');
-                                
+
                                 const result = await bookSlot(firstSlot.wid, firstSlot.name);
-                                
+
                                 if (result === true) {
                                     addLog(`✨ ${timeSlot} 预约成功！`, 'success');
                                     if (successfulBookings.length < currentMaxBookings) {
@@ -2669,38 +2651,43 @@
                         }
                     } else {
                         SmartRetry.onFailure('no_slots'); // 记录无可用时段
-                        
+
                         if (retryCount <= 3 || retryCount % 20 === 0) {
                             addLog(`🔍 暂无可预约场地`, 'warning');
                         }
                     }
-                    
+
                 } catch (error) {
                     const errorType = NetworkErrorHandler.categorizeError(error);
                     SmartRetry.onFailure(errorType);
-                    
-                    // 尝试错误恢复
-                    const recovered = await ErrorRecovery.attemptRecovery(errorType, error, {
-                        operation: 'getAvailableSlots',
-                        retryCount: retryCount
-                    });
-                    
-                    if (!recovered && errorType === 'auth_error') {
-                        break; // 认证错误无法恢复，停止抢票
+
+                    // 尝试错误恢复，但不因为恢复失败而退出
+                    try {
+                        await ErrorRecovery.attemptRecovery(errorType, error, {
+                            operation: 'getAvailableSlots',
+                            retryCount: retryCount
+                        });
+                    } catch (recoveryError) {
+                        // 恢复失败也继续运行
+                        addLog(`🔧 错误恢复失败，继续尝试`, 'warning');
+                    }
+
+                    // 只有认证错误才退出，其他错误都继续
+                    if (errorType === 'auth_error') {
+                        addLog(`🔐 认证错误，需要重新登录`, 'error');
+                        break;
                     }
                 }
-                
+
                 if (successfulBookings.length < currentMaxBookings && isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
-                    const nextInterval = SmartRetry.getNextInterval();
-                    
-                    if (retryCount <= 3 || retryCount % 30 === 0) {
-                        addLog(`⏳ 等待 ${Math.round(nextInterval/1000)} 秒后重试...`);
-                    }
-                    
-                    await new Promise(resolve => setTimeout(resolve, nextInterval));
+                    // 严格按照用户设置的查询间隔，添加小的随机抖动
+                    const baseInterval = CONFIG.RETRY_INTERVAL * 1000; // 转换为毫秒
+                    const jitter = Math.random() * 200 - 100; // ±100ms的随机抖动
+                    const actualInterval = Math.max(100, baseInterval + jitter); // 确保最小间隔100ms
+                    await new Promise(resolve => setTimeout(resolve, actualInterval));
                 }
             }
-            
+
         } catch (error) {
             addLog(`💥 程序异常: ${error.message}`, 'error');
             ErrorRecovery.recordError(error, { operation: 'startBooking' });
