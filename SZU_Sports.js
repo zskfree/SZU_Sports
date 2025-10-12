@@ -1,14 +1,16 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-
-// @version      1.1.5
+// @version      1.1.6
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
 // @match        https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
 // @icon         🎾
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @connect      qyapi.weixin.qq.com
 // @run-at       document-end
 // @license      MIT
 // @downloadURL https://update.greasyfork.org/scripts/537386/%E6%B7%B1%E5%9C%B3%E5%A4%A7%E5%AD%A6%E4%BD%93%E8%82%B2%E5%9C%BA%E9%A6%86%E8%87%AA%E5%8A%A8%E6%8A%A2%E7%A5%A8.user.js
@@ -33,17 +35,17 @@
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
         compressionThreshold: 1024, // 1KB以上进行压缩
-        
-        set: function(key, value) {
+
+        set: function (key, value) {
             const fullKey = this.prefix + key;
             const data = {
                 value: value,
                 timestamp: Date.now(),
-                version: '1.1.5'
+                version: '1.1.6'
             };
-            
+
             let serializedData = JSON.stringify(data);
-            
+
             // 如果数据较大，尝试压缩（简单压缩）
             if (serializedData.length > this.compressionThreshold) {
                 try {
@@ -53,14 +55,14 @@
                     console.warn('数据压缩失败:', e);
                 }
             }
-            
+
             // 尝试 localStorage
             try {
                 localStorage.setItem(fullKey, serializedData);
                 return true;
             } catch (e) {
                 console.warn('localStorage 存储失败:', e);
-                
+
                 // 清理过期数据后重试
                 try {
                     this.cleanup();
@@ -68,14 +70,14 @@
                     return true;
                 } catch (e2) {
                     console.warn('清理后重试失败，尝试 sessionStorage');
-                    
+
                     // 回退到 sessionStorage
                     try {
                         sessionStorage.setItem(fullKey, serializedData);
                         return true;
                     } catch (e3) {
                         console.warn('sessionStorage 也失败，使用内存存储');
-                        
+
                         // 最后回退到 Map 结构的内存存储
                         if (!window.memoryStorage) {
                             window.memoryStorage = new Map();
@@ -86,37 +88,37 @@
                 }
             }
         },
-        
-        get: function(key, defaultValue = null) {
+
+        get: function (key, defaultValue = null) {
             const fullKey = this.prefix + key;
-            
+
             // 尝试 localStorage
             try {
                 const item = localStorage.getItem(fullKey);
                 if (item !== null) {
                     const data = JSON.parse(item);
-                    
+
                     // 检查版本兼容性
-                    if (data.version && data.version !== '1.1.5') {
-                        console.warn(`配置版本不匹配: ${data.version} -> 1.1.5，使用默认值`);
+                    if (data.version && data.version !== '1.1.6') {
+                        console.warn(`配置版本不匹配: ${data.version} -> 1.1.6，使用默认值`);
                         this.remove(key); // 清理旧版本数据
                         return defaultValue;
                     }
-                    
+
                     // 检查数据是否过期
                     if (data.timestamp && Date.now() - data.timestamp > this.maxAge) {
                         console.warn(`数据已过期: ${key}`);
                         this.remove(key);
                         return defaultValue;
                     }
-                    
+
                     return data.value !== undefined ? data.value : data; // 兼容旧格式
                 }
             } catch (e) {
                 console.warn('读取 localStorage 失败:', e);
                 this.remove(key); // 清理损坏的数据
             }
-            
+
             // 尝试 sessionStorage
             try {
                 const item = sessionStorage.getItem(fullKey);
@@ -127,7 +129,7 @@
             } catch (e) {
                 console.warn('读取 sessionStorage 失败:', e);
             }
-            
+
             // 尝试内存存储
             if (window.memoryStorage && window.memoryStorage.has && window.memoryStorage.has(fullKey)) {
                 const data = window.memoryStorage.get(fullKey);
@@ -136,25 +138,25 @@
                 // 兼容旧版本的对象格式
                 return window.memoryStorage[fullKey];
             }
-            
+
             return defaultValue;
         },
-        
-        remove: function(key) {
+
+        remove: function (key) {
             const fullKey = this.prefix + key;
-            
+
             try {
                 localStorage.removeItem(fullKey);
             } catch (e) {
                 console.warn('清理 localStorage 失败:', e);
             }
-            
+
             try {
                 sessionStorage.removeItem(fullKey);
             } catch (e) {
                 console.warn('清理 sessionStorage 失败:', e);
             }
-            
+
             if (window.memoryStorage) {
                 if (window.memoryStorage.delete) {
                     window.memoryStorage.delete(fullKey);
@@ -163,12 +165,12 @@
                 }
             }
         },
-        
+
         // 清理过期数据
-        cleanup: function() {
+        cleanup: function () {
             const now = Date.now();
             let cleanedCount = 0;
-            
+
             // 清理 localStorage
             try {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -190,7 +192,7 @@
             } catch (e) {
                 console.warn('清理 localStorage 失败:', e);
             }
-            
+
             // 清理 sessionStorage 中的过期数据
             try {
                 for (let i = sessionStorage.length - 1; i >= 0; i--) {
@@ -211,29 +213,29 @@
             } catch (e) {
                 console.warn('清理 sessionStorage 失败:', e);
             }
-            
+
             if (cleanedCount > 0) {
                 console.log(`清理了 ${cleanedCount} 个过期数据项`);
             }
-            
+
             return cleanedCount;
         },
-        
+
         // 获取存储使用情况
-        getStorageInfo: function() {
+        getStorageInfo: function () {
             const info = {
                 localStorage: { used: 0, available: false },
                 sessionStorage: { used: 0, available: false },
                 memoryStorage: { used: 0, available: false }
             };
-            
+
             // 检查 localStorage
             try {
                 const testKey = this.prefix + 'storage_test';
                 localStorage.setItem(testKey, 'test');
                 localStorage.removeItem(testKey);
                 info.localStorage.available = true;
-                
+
                 // 计算使用量
                 let usedSize = 0;
                 for (let i = 0; i < localStorage.length; i++) {
@@ -246,14 +248,14 @@
             } catch (e) {
                 info.localStorage.available = false;
             }
-            
+
             // 检查 sessionStorage
             try {
                 const testKey = this.prefix + 'storage_test';
                 sessionStorage.setItem(testKey, 'test');
                 sessionStorage.removeItem(testKey);
                 info.sessionStorage.available = true;
-                
+
                 let usedSize = 0;
                 for (let i = 0; i < sessionStorage.length; i++) {
                     const key = sessionStorage.key(i);
@@ -265,7 +267,7 @@
             } catch (e) {
                 info.sessionStorage.available = false;
             }
-            
+
             // 检查内存存储
             if (window.memoryStorage) {
                 info.memoryStorage.available = true;
@@ -275,7 +277,7 @@
                     info.memoryStorage.used = Object.keys(window.memoryStorage).length;
                 }
             }
-            
+
             return info;
         }
     };
@@ -551,46 +553,45 @@
         }
     };
 
-
     // 添加移动端专用功能
     const MobileOptimization = {
         wakeLock: null,
         isVisible: true,
         lastActivity: Date.now(),
         heartbeatInterval: null,
-        
+
         // 初始化移动端优化
-        init: function() {
+        init: function () {
             if (!isMobile) return;
-            
+
             addLog(`📱 启用移动端优化`, 'info');
-            
+
             // 请求屏幕唤醒锁
             this.requestWakeLock();
-            
+
             // 监听页面可见性变化
             this.setupVisibilityMonitor();
-            
+
             // 启动心跳机制
             this.startHeartbeat();
-            
+
             // 监听电池状态（如果支持）
             this.setupBatteryMonitor();
-            
+
             // 设置触摸反馈
             this.setupTouchFeedback();
-            
+
             // 优化滚动性能
             this.optimizeScrolling();
         },
-        
+
         // 请求屏幕唤醒锁
-        requestWakeLock: async function() {
+        requestWakeLock: async function () {
             if ('wakeLock' in navigator) {
                 try {
                     this.wakeLock = await navigator.wakeLock.request('screen');
                     addLog(`🔆 屏幕保持唤醒已启用`, 'success');
-                    
+
                     this.wakeLock.addEventListener('release', () => {
                         addLog(`😴 屏幕唤醒锁已释放`, 'warning');
                         // 如果还在运行，尝试重新获取
@@ -605,22 +606,22 @@
                 addLog(`📱 当前浏览器不支持屏幕唤醒锁`, 'info');
             }
         },
-        
+
         // 释放屏幕唤醒锁
-        releaseWakeLock: function() {
+        releaseWakeLock: function () {
             if (this.wakeLock) {
                 this.wakeLock.release();
                 this.wakeLock = null;
             }
         },
-        
+
         // 设置页面可见性监听
-        setupVisibilityMonitor: function() {
+        setupVisibilityMonitor: function () {
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) {
                     this.isVisible = false;
                     addLog(`📱 页面进入后台`, 'info');
-                    
+
                     // 如果正在运行，增加心跳频率
                     if (isRunning && this.heartbeatInterval) {
                         clearInterval(this.heartbeatInterval);
@@ -630,13 +631,13 @@
                     this.isVisible = true;
                     addLog(`📱 页面回到前台`, 'info');
                     this.lastActivity = Date.now();
-                    
+
                     // 恢复正常心跳
                     if (this.heartbeatInterval) {
                         clearInterval(this.heartbeatInterval);
                         this.startHeartbeat();
                     }
-                    
+
                     // 重新请求唤醒锁
                     if (isRunning) {
                         this.requestWakeLock();
@@ -644,19 +645,19 @@
                 }
             });
         },
-        
+
         // 启动心跳机制
-        startHeartbeat: function(interval = 30000) {
+        startHeartbeat: function (interval = 30000) {
             this.heartbeatInterval = setInterval(() => {
                 if (isRunning) {
                     this.lastActivity = Date.now();
-                    
+
                     // 触发一个微小的DOM操作，保持页面活跃
                     const statusArea = document.getElementById('status-area');
                     if (statusArea) {
                         statusArea.style.opacity = statusArea.style.opacity || '1';
                     }
-                    
+
                     // 检查网络连接
                     if (!navigator.onLine) {
                         addLog(`📶 网络连接已断开`, 'error');
@@ -667,33 +668,33 @@
                 }
             }, interval);
         },
-        
+
         // 停止心跳机制
-        stopHeartbeat: function() {
+        stopHeartbeat: function () {
             if (this.heartbeatInterval) {
                 clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = null;
             }
         },
-        
+
         // 设置电池监听
-        setupBatteryMonitor: function() {
+        setupBatteryMonitor: function () {
             if ('getBattery' in navigator) {
                 navigator.getBattery().then((battery) => {
                     const updateBatteryInfo = () => {
                         const level = Math.round(battery.level * 100);
                         const charging = battery.charging;
-                        
+
                         if (level <= 20 && !charging) {
                             addLog(`🔋 电池电量较低 (${level}%)，建议连接充电器`, 'warning');
                         } else if (level <= 10 && !charging) {
                             addLog(`🔋 电池电量严重不足 (${level}%)，可能影响抢票`, 'error');
                         }
                     };
-                    
+
                     // 初始检查
                     updateBatteryInfo();
-                    
+
                     // 监听电池变化
                     battery.addEventListener('levelchange', updateBatteryInfo);
                     battery.addEventListener('chargingchange', updateBatteryInfo);
@@ -702,11 +703,11 @@
                 });
             }
         },
-        
+
         // 设置触摸反馈
-        setupTouchFeedback: function() {
+        setupTouchFeedback: function () {
             if (!isTouchDevice) return;
-            
+
             // 为所有按钮添加触觉反馈（如果支持）
             const addHapticFeedback = (element) => {
                 element.addEventListener('touchstart', () => {
@@ -716,18 +717,18 @@
                     }
                 }, { passive: true });
             };
-            
+
             // 应用到现有按钮
             setTimeout(() => {
                 const buttons = document.querySelectorAll('button');
                 buttons.forEach(addHapticFeedback);
             }, 100);
         },
-        
+
         // 优化滚动性能
-        optimizeScrolling: function() {
+        optimizeScrolling: function () {
             if (!isMobile) return;
-            
+
             const style = document.createElement('style');
             style.textContent = `
                 /* 优化移动端滚动 */
@@ -735,25 +736,25 @@
                     -webkit-overflow-scrolling: touch;
                     overscroll-behavior: contain;
                 }
-                
+
                 /* 防止iOS双击缩放 */
                 * {
                     touch-action: manipulation;
                 }
-                
+
                 /* 优化输入框 */
                 input, select, textarea {
                     -webkit-user-select: auto;
                     user-select: auto;
                 }
-                
+
                 /* 防止长按选择文本 */
                 #auto-booking-panel {
                     -webkit-user-select: none;
                     user-select: none;
                     -webkit-tap-highlight-color: transparent;
                 }
-                
+
                 /* 允许输入区域选择文本 */
                 #auto-booking-panel input,
                 #auto-booking-panel select {
@@ -763,11 +764,11 @@
             `;
             document.head.appendChild(style);
         },
-        
+
         // 处理长时间运行的页面冻结问题
-        preventPageFreeze: function() {
+        preventPageFreeze: function () {
             if (!isMobile) return;
-            
+
             // 定期执行一些轻量级操作防止页面冻结
             setInterval(() => {
                 if (isRunning) {
@@ -780,11 +781,11 @@
                 }
             }, 15000); // 每15秒执行一次
         },
-        
+
         // 优化内存使用
-        optimizeMemory: function() {
+        optimizeMemory: function () {
             if (!isMobile) return;
-            
+
             // 定期清理日志
             setInterval(() => {
                 const statusArea = document.getElementById('status-area');
@@ -797,9 +798,9 @@
                 }
             }, 60000); // 每分钟检查一次
         },
-        
+
         // 清理资源
-        cleanup: function() {
+        cleanup: function () {
             this.releaseWakeLock();
             this.stopHeartbeat();
             addLog(`📱 移动端优化已清理`, 'info');
@@ -811,20 +812,20 @@
         errorHistory: [],
         maxHistorySize: 50,
         recoveryStrategies: new Map(),
-        
+
         // 初始化错误恢复机制
-        init: function() {
+        init: function () {
             // 注册恢复策略
             this.registerStrategies();
-            
+
             // 监听全局错误
             this.setupGlobalErrorHandler();
-            
+
             addLog(`🛡️ 错误恢复机制已启用`, 'info');
         },
-        
+
         // 注册恢复策略
-        registerStrategies: function() {
+        registerStrategies: function () {
             // 网络错误恢复
             this.recoveryStrategies.set('network_error', {
                 immediate: () => {
@@ -842,7 +843,7 @@
                     return true;
                 }
             });
-            
+
             // 认证错误恢复
             this.recoveryStrategies.set('auth_error', {
                 immediate: () => {
@@ -850,7 +851,7 @@
                     return false; // 无法自动恢复
                 }
             });
-            
+
             // 频率限制恢复
             this.recoveryStrategies.set('rate_limit', {
                 immediate: () => {
@@ -864,7 +865,7 @@
                     return true;
                 }
             });
-            
+
             // 服务器错误恢复
             this.recoveryStrategies.set('server_error', {
                 immediate: () => {
@@ -877,9 +878,9 @@
                 }
             });
         },
-        
+
         // 记录错误
-        recordError: function(error, context = {}) {
+        recordError: function (error, context = {}) {
             const errorRecord = {
                 timestamp: Date.now(),
                 message: error.message || String(error),
@@ -887,27 +888,27 @@
                 context: context,
                 stack: error.stack
             };
-            
+
             this.errorHistory.push(errorRecord);
-            
+
             // 限制历史记录大小
             if (this.errorHistory.length > this.maxHistorySize) {
                 this.errorHistory.shift();
             }
-            
+
             return errorRecord;
         },
-        
+
         // 尝试恢复
-        attemptRecovery: async function(errorType, error, context = {}) {
+        attemptRecovery: async function (errorType, error, context = {}) {
             this.recordError(error, context);
-            
+
             const strategy = this.recoveryStrategies.get(errorType);
             if (!strategy) {
                 addLog(`❌ 未知错误类型: ${errorType}`, 'error');
                 return false;
             }
-            
+
             // 尝试即时恢复
             if (strategy.immediate) {
                 try {
@@ -920,7 +921,7 @@
                     addLog(`❌ 即时恢复失败: ${e.message}`, 'error');
                 }
             }
-            
+
             // 尝试延迟恢复
             if (strategy.delayed) {
                 try {
@@ -934,44 +935,44 @@
                     addLog(`❌ 延迟恢复失败: ${e.message}`, 'error');
                 }
             }
-            
+
             return false;
         },
-        
+
         // 设置全局错误处理
-        setupGlobalErrorHandler: function() {
+        setupGlobalErrorHandler: function () {
             // 捕获未处理的Promise错误
             window.addEventListener('unhandledrejection', (event) => {
                 console.error('未处理的Promise错误:', event.reason);
                 this.recordError(event.reason, { type: 'unhandledrejection' });
-                
+
                 // 防止控制台报错
                 event.preventDefault();
             });
-            
+
             // 捕获全局JavaScript错误
             window.addEventListener('error', (event) => {
                 console.error('全局JavaScript错误:', event.error);
-                this.recordError(event.error, { 
+                this.recordError(event.error, {
                     type: 'javascript_error',
                     filename: event.filename,
                     lineno: event.lineno
                 });
             });
         },
-        
+
         // 获取错误统计
-        getErrorStats: function() {
+        getErrorStats: function () {
             const now = Date.now();
             const last24Hours = this.errorHistory.filter(e => now - e.timestamp < 24 * 60 * 60 * 1000);
             const lastHour = this.errorHistory.filter(e => now - e.timestamp < 60 * 60 * 1000);
-            
+
             const typeStats = {};
             last24Hours.forEach(error => {
                 const type = error.type || 'unknown';
                 typeStats[type] = (typeStats[type] || 0) + 1;
             });
-            
+
             return {
                 total: this.errorHistory.length,
                 last24Hours: last24Hours.length,
@@ -979,6 +980,235 @@
                 typeStats: typeStats,
                 latestErrors: this.errorHistory.slice(-5)
             };
+        }
+    };
+
+    // 在 ErrorRecovery 对象后替换企业微信推送模块
+    const WeChatWorkNotifier = {
+        webhookUrl: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4a1965fb-7559-4229-95ab-cc5a34066b6b',
+        enabled: true,
+        maxRetries: 3,
+        retryDelay: 2000,
+
+        // 使用GM_xmlhttpRequest发送消息(解决跨域问题)
+        sendMessage: function (content, retryCount = 0) {
+            return new Promise((resolve) => {
+                try {
+                    const payload = {
+                        msgtype: 'text',
+                        text: {
+                            content: content
+                        }
+                    };
+
+                    // 检查GM_xmlhttpRequest是否可用
+                    if (typeof GM_xmlhttpRequest === 'undefined') {
+                        addLog(`📮 推送功能需要GM权限，请更新脚本`, 'error');
+                        resolve({
+                            success: false,
+                            error: '缺少GM_xmlhttpRequest权限'
+                        });
+                        return;
+                    }
+
+                    GM_xmlhttpRequest({
+                        method: 'POST',
+                        url: this.webhookUrl,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        data: JSON.stringify(payload),
+                        timeout: 10000,
+
+                        onload: (response) => {
+                            try {
+                                if (response.status !== 200) {
+                                    throw new Error(`HTTP ${response.status}`);
+                                }
+
+                                const result = JSON.parse(response.responseText);
+
+                                if (result.errcode !== 0) {
+                                    if (retryCount < this.maxRetries) {
+                                        addLog(`📮 推送失败(错误码${result.errcode})，${this.retryDelay / 1000}秒后重试...`, 'warning');
+                                        setTimeout(() => {
+                                            this.sendMessage(content, retryCount + 1).then(resolve);
+                                        }, this.retryDelay);
+                                        return;
+                                    }
+
+                                    resolve({
+                                        success: false,
+                                        error: `企业微信错误${result.errcode}: ${result.errmsg || '未知'}`
+                                    });
+                                    return;
+                                }
+
+                                resolve({ success: true });
+
+                            } catch (error) {
+                                if (retryCount < this.maxRetries) {
+                                    addLog(`📮 解析响应失败，${this.retryDelay / 1000}秒后重试...`, 'warning');
+                                    setTimeout(() => {
+                                        this.sendMessage(content, retryCount + 1).then(resolve);
+                                    }, this.retryDelay);
+                                } else {
+                                    resolve({
+                                        success: false,
+                                        error: `解析失败: ${error.message}`
+                                    });
+                                }
+                            }
+                        },
+
+                        onerror: (response) => {
+                            if (retryCount < this.maxRetries) {
+                                addLog(`📮 推送网络错误，${this.retryDelay / 1000}秒后重试...`, 'warning');
+                                setTimeout(() => {
+                                    this.sendMessage(content, retryCount + 1).then(resolve);
+                                }, this.retryDelay);
+                            } else {
+                                resolve({
+                                    success: false,
+                                    error: `网络错误: ${response.statusText || '请求失败'}`
+                                });
+                            }
+                        },
+
+                        ontimeout: () => {
+                            if (retryCount < this.maxRetries) {
+                                addLog(`📮 推送超时，${this.retryDelay / 1000}秒后重试...`, 'warning');
+                                setTimeout(() => {
+                                    this.sendMessage(content, retryCount + 1).then(resolve);
+                                }, this.retryDelay);
+                            } else {
+                                resolve({
+                                    success: false,
+                                    error: '请求超时'
+                                });
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    resolve({
+                        success: false,
+                        error: error.message
+                    });
+                }
+            });
+        },
+
+        // 推送预约成功消息
+        sendBookingSuccess: async function (bookingInfo) {
+            if (!this.enabled) {
+                // console.log('企业微信推送未启用');
+                return false;
+            }
+
+            try {
+                const content = this.buildBookingMessage(bookingInfo);
+                const result = await this.sendMessage(content);
+
+                if (result.success) {
+                    // addLog(`📮 推送成功：消息已发送`, 'success');
+                    return true;
+                } else {
+                    // addLog(`📮 推送失败：${result.error}`, 'warning');
+                    return false;
+                }
+            } catch (error) {
+                // addLog(`📮 推送异常：${error.message}`, 'error');
+                return false;
+            }
+        },
+
+        // 构建预约成功消息内容
+        buildBookingMessage: function (bookingInfo) {
+            const {
+                userName,
+                userId,
+                date,
+                sport,
+                campus,
+                venueName,
+                timeSlot,
+                dhid
+            } = bookingInfo;
+
+            const message = `🎉 深大体育场馆预约成功！
+
+👤 预约人：${userName}
+🆔 学号/工号：${userId}
+📅 预约日期：${date}
+🏟️ 运动项目：${sport}
+🏫 校区：${campus}
+📍 场地：${venueName}
+⏰ 时间段：${timeSlot}
+📋 预约单号：${dhid}
+
+✅ 请准时前往使用，祝运动愉快！`;
+
+            return message;
+        },
+
+        // 测试推送功能
+        testNotification: async function () {
+            // addLog(`📮 测试企业微信推送...`, 'info');
+
+            if (typeof GM_xmlhttpRequest === 'undefined') {
+                // addLog(`❌ 推送功能需要GM权限`, 'error');
+                // addLog(`💡 请确保脚本头部包含:`, 'info');
+                // addLog(`   @grant GM_xmlhttpRequest`, 'info');
+                // addLog(`   @connect qyapi.weixin.qq.com`, 'info');
+                return false;
+            }
+
+            const testInfo = {
+                userName: '测试用户',
+                userId: '2024010001',
+                date: getTomorrowDate(),
+                sport: '羽毛球',
+                campus: '丽湖',
+                venueName: '至畅体育馆-5号场',
+                timeSlot: '20:00-21:00',
+                dhid: 'TEST-' + Date.now()
+            };
+
+            return await this.sendBookingSuccess(testInfo);
+        },
+
+        // 启用/禁用推送
+        toggle: function (enabled) {
+            this.enabled = enabled;
+            // 使用GM_setValue代替Storage (避免跨域问题)
+            if (typeof GM_setValue !== 'undefined') {
+                GM_setValue('wechat_notifier_enabled', enabled);
+            } else {
+                Storage.set('wechat_notifier_enabled', enabled);
+            }
+            // addLog(`📮 企业微信推送已${enabled ? '启用' : '禁用'}`, 'info');
+        },
+
+        // 初始化
+        init: function () {
+            // 优先使用GM_getValue
+            let savedEnabled = true;
+            if (typeof GM_getValue !== 'undefined') {
+                savedEnabled = GM_getValue('wechat_notifier_enabled', true);
+            } else {
+                savedEnabled = Storage.get('wechat_notifier_enabled', true);
+            }
+            this.enabled = savedEnabled;
+
+            // 检查权限
+            if (typeof GM_xmlhttpRequest === 'undefined') {
+                // addLog(`⚠️ 企业微信推送需要GM权限`, 'warning');
+                // addLog(`💡 请重新安装脚本以获取权限`, 'info');
+                this.enabled = false;
+            } else if (this.enabled) {
+                // addLog(`📮 企业微信推送功能已启用`, 'info');
+            }
         }
     };
 
@@ -1329,7 +1559,7 @@
         panel.innerHTML = `
         <div style="margin-bottom: 15px; text-align: center; position: relative;">
             <h3 style="margin: 0; font-size: ${isMobile ? '20px' : '18px'}; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                🎾 自动抢票助手 v1.1.5
+                🎾 自动抢票助手 v1.1.6
             </h3>
             <button id="close-panel" style="
                 position: absolute;
@@ -1733,7 +1963,7 @@
                     updateConfigFromUI();
                     updateDisplayConfig();
                     addLog('✅ 配置已保存', 'success');
-                    
+
                     // 新增：保存配置后自动隐藏配置区域
                     const configArea = panelElement.querySelector('#config-area');
                     const toggleConfigBtn = panelElement.querySelector('#toggle-config');
@@ -2337,7 +2567,7 @@
         }
     }
 
-    // 预约场地
+    // 修改 bookSlot 函数，在预约成功后添加推送
     async function bookSlot(wid, slotName) {
         try {
             const timeSlot = CONFIG.PREFERRED_TIMES.find(time => slotName.includes(time));
@@ -2410,6 +2640,24 @@
                 });
 
                 updateProgress();
+
+                // 新增：发送企业微信推送
+                try {
+                    await WeChatWorkNotifier.sendBookingSuccess({
+                        userName: CONFIG.USER_INFO.YYRXM,
+                        userId: CONFIG.USER_INFO.YYRGH,
+                        date: CONFIG.TARGET_DATE,
+                        sport: CONFIG.SPORT,
+                        campus: CONFIG.CAMPUS,
+                        venueName: slotName,
+                        timeSlot: timeSlot,
+                        dhid: dhid
+                    });
+                } catch (notifyError) {
+                    // 推送失败不影响预约流程
+                    console.error('企业微信推送失败:', notifyError);
+                }
+
                 return true;
             } else {
                 const errorMsg = result.msg || "未知错误";
@@ -2695,25 +2943,25 @@
             stopBooking();
         }
     }
-    
+
     // 更新 stopBooking 函数
     function stopBooking() {
         if (!isRunning) return;
-        
+
         isRunning = false;
         const currentMaxBookings = getMaxBookings();
-        
+
         // 清理移动端优化资源
         if (isMobile) {
             MobileOptimization.cleanup();
         }
-        
+
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
             startBtn.textContent = '🚀 开始抢票';
             startBtn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
         }
-        
+
         if (successfulBookings.length > 0) {
             addLog(`🎉 抢票结束！成功预约 ${successfulBookings.length}/${currentMaxBookings} 个时段`, 'success');
             successfulBookings.forEach((booking, index) => {
@@ -2722,10 +2970,10 @@
         } else {
             addLog(`😢 很遗憾，没有成功预约到任何时段`, 'warning');
         }
-        
+
         const elapsed = startTime ? Math.round((new Date() - startTime) / 1000) : 0;
         addLog(`📊 运行时间: ${elapsed}秒, 查询次数: ${retryCount}`, 'info');
-        
+
         // 显示错误统计
         const errorStats = ErrorRecovery.getErrorStats();
         if (errorStats.total > 0) {
@@ -2769,50 +3017,53 @@
         if (!systemHealth.healthy) {
             addLog(`⚠️ 系统检查发现问题: ${systemHealth.issues.join(', ')}`, 'warning');
         }
-        
+
         // 初始化错误恢复机制
         ErrorRecovery.init();
-        
+
+        // 初始化企业微信推送
+        WeChatWorkNotifier.init();
+
         // 初始化移动端优化
         if (isMobile) {
             MobileOptimization.init();
             MobileOptimization.preventPageFreeze();
             MobileOptimization.optimizeMemory();
         }
-        
+
         // 初始化智能重试机制
         SmartRetry.reset();
-        
+
         // 清理存储
         const cleanedCount = Storage.cleanup();
         if (cleanedCount > 0) {
             addLog(`🧹 清理了 ${cleanedCount} 个过期配置项`, 'info');
         }
-        
+
         // 显示存储状态
         const storageInfo = Storage.getStorageInfo();
         let storageStatus = '💾 存储状态: ';
         if (storageInfo.localStorage.available) {
-            storageStatus += `localStorage(${Math.round(storageInfo.localStorage.used/1024)}KB) `;
+            storageStatus += `localStorage(${Math.round(storageInfo.localStorage.used / 1024)}KB) `;
         }
         if (storageInfo.sessionStorage.available) {
-            storageStatus += `sessionStorage(${Math.round(storageInfo.sessionStorage.used/1024)}KB) `;
+            storageStatus += `sessionStorage(${Math.round(storageInfo.sessionStorage.used / 1024)}KB) `;
         }
         if (storageInfo.memoryStorage.available) {
             storageStatus += `memory(${storageInfo.memoryStorage.used}项)`;
         }
         addLog(storageStatus, 'info');
-        
+
         // 更新 URL 检查逻辑，支持 WebVPN
         const currentUrl = window.location.href;
         const isValidUrl = currentUrl.includes('ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy') ||
-                          currentUrl.includes('ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy');
-        
+            currentUrl.includes('ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy');
+
         if (!isValidUrl) {
             console.log('URL 不匹配，退出初始化。当前URL:', currentUrl);
             return;
         }
-        
+
         console.log('开始初始化...', {
             isMobile, isIOS, isIPad, isTouchDevice,
             userAgent: navigator.userAgent,
@@ -2821,31 +3072,31 @@
             hasPointerEvent: !!window.PointerEvent,
             currentUrl: currentUrl
         });
-        
+
         // 检查 PointerEvent 支持
         if (window.PointerEvent) {
             console.log('✅ 支持 PointerEvent API');
         } else {
             console.log('❌ 不支持 PointerEvent API，使用 TouchEvent');
         }
-        
+
         // 确保配置中的日期为明天
         CONFIG.TARGET_DATE = getTomorrowDate();
-        
+
         // iOS兼容性检查
         const isCompatible = checkIOSCompatibility();
-        
+
         // 创建浮动按钮
         floatingButton = createFloatingButton();
         console.log('浮动按钮创建完成', floatingButton);
-        
+
         // 创建控制面板
         controlPanel = createControlPanel();
         console.log('控制面板创建完成', controlPanel);
-        
+
         // 更新界面显示
         updateDisplayConfig();
-        
+
         // 同时更新输入框的值
         const targetDateInput = document.getElementById('target-date');
         if (targetDateInput) {
@@ -2854,7 +3105,7 @@
 
         const deviceInfo = isIPad ? 'iPad' : (isMobile ? '移动端' : '桌面端');
         addLog(`🎮 自动抢票助手已就绪！(${deviceInfo})`, 'success');
-        
+
         if (isIOS) {
             addLog(`🍎 iOS优化版本，触摸操作已优化`, 'info');
             if (window.PointerEvent) {
@@ -2866,10 +3117,10 @@
                 addLog(`⚠️ 发现兼容性问题，建议检查Safari设置`, 'warning');
             }
         }
-        
+
         addLog(`📝 已加载配置，可随时修改`, 'info');
         console.log('初始化完成');
-        
+
         // 测试面板状态
         console.log('初始面板状态:', isPanelVisible);
     }
