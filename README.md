@@ -195,7 +195,6 @@ SZU_Sports/
 ├── README.md              # 项目文档
 ├── index.html             # 项目主页
 ├── SZU_Sports.js          # 核心脚本文件
-└── LICENSE                # 开源协议
 ```
 
 ### 核心文件说明
