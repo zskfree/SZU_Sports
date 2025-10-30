@@ -1,322 +1,273 @@
-# 🎾 SZU Sports - 深圳大学体育场馆智能抢票助手
+# 深圳大学体育场馆自动抢票脚本 🎾
 
-<div align="center">
+## 📋 概述
 
-![Version](https://img.shields.io/badge/version-1.1.5-blue.svg)
-![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20Desktop-green.svg)
-![License](https://img.shields.io/badge/license-MIT-orange.svg)
-![Tampermonkey](https://img.shields.io/badge/Tampermonkey-Compatible-red.svg)
+这是一个功能强大的 Tampermonkey 用户脚本,用于自动化预约深圳大学体育场馆。支持 iOS、Android、移动端和桌面端全平台,提供智能抢票、定时预约、企业微信通知等功能。
 
-**专为深圳大学场馆预约系统开发的智能化油猴脚本**
-
-支持多项目预约 • 跨平台兼容 • 移动端优化 • 智能重试
-
-[🚀 立即安装](https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票) • [📖 使用文档](#使用指南) • [🐛 问题反馈](https://github.com/zskfree/SZU_Sports/issues)
-
-</div>
+**版本**: 1.1.7  
+**作者**: zskfree  
+**许可证**: MIT
 
 ---
 
-## ✨ 项目简介
+## ✨ 核心特性
 
-**SZU Sports** 是一个功能强大的自动化抢票脚本，专为深圳大学体育场馆预约系统设计。通过智能算法和先进的错误恢复机制，帮助用户高效、便捷地预约心仪的运动场馆。
+### 🎯 智能预约系统
 
-### 🎯 核心优势
+- **多时段预约**: 最多同时预约 2 个时间段
+- **场馆优先级**: 智能选择最优场地(丽湖羽毛球馆支持至畅/至快优先)
+- **自动重试**: 可配置重试次数和间隔,智能避让网络拥堵
+- **动态模式切换**: 自动识别篮球团体预约模式和单人散场模式
 
-- **🤖 全自动化**: 无需人工干预，智能循环预约
-- **📱 跨平台支持**: 完美兼容 iOS、Android 和桌面端
-- **🧠 智能重试**: 自适应重试策略，提高成功率
-- **⚡ 高性能**: 优化的请求频率控制和内存管理
-- **🛡️ 错误恢复**: 内置多重错误处理和自动恢复机制
+### ⏰ 定时任务
 
-## 🚀 主要功能
+- **精准定时**: 支持设置未来任意时间自动开始抢票
+- **实时倒计时**: 显示距离定时任务触发的剩余时间
+- **任务持久化**: 页面刷新后自动恢复定时任务
 
-### 核心功能
+### 📱 全平台适配
 
-- 🏃 **智能预约**: 自动循环刷新并预约指定时间段的场馆
-- 🎯 **多项目支持**: 支持羽毛球、篮球、网球、排球、游泳、乒乓球、桌球
-- 🏟️ **场馆优选**: 羽毛球支持至畅/至快场馆选择，智能优先级排序
-- 📅 **灵活配置**: 自定义预约日期、校区、运动项目、时间段等参数
+- **响应式 UI**: 自动适配手机、平板、电脑屏幕
+- **触控优化**: 完美支持触摸操作,防止误触
+- **移动端增强**:
+  - 屏幕保持唤醒
+  - 页面可见性监控
+  - 滚动性能优化
 
-### 用户体验
+### 🔔 企业微信通知
 
-- 🖱️ **友好界面**: 浮动按钮与可配置的控制面板
-- ⚡ **快捷操作**: 支持键盘快捷键（桌面端）
-- 📱 **移动优化**: 专为触摸设备优化的交互体验
-- 💾 **配置保存**: 用户偏好自动保存，支持跨设备同步
+- **即时推送**: 预约成功后自动发送企业微信消息
+- **详细信息**: 包含场地、时间、单号等完整信息
 
-### 高级特性
+### 🛡️ 网络优化
 
-- 🔄 **智能重试**: 自适应重试间隔和错误恢复
-- ⏱️ **实时监控**: 详细的预约进度和状态日志
-- 🛡️ **错误处理**: 网络异常自动恢复，提高稳定性
-- 🔋 **电池优化**: 移动端电池状态监控和性能优化
+- **智能重试**: 根据错误类型自动调整重试策略
+- **频率控制**: 限制请求频率,避免触发限流
+- **超时处理**: 可配置请求超时时间
+- **错误分类**: 区分网络错误、服务器错误、认证错误等
 
-## 📋 支持的运动项目
+---
 
-| 项目 | 校区支持 | 特殊功能 |
-|------|----------|----------|
-| 🏸 羽毛球 | 粤海、丽湖 | 场馆优选（至畅/至快） |
-| 🏀 篮球 | 粤海、丽湖 | - |
-| 🎾 网球 | 粤海、丽湖 | - |
-| 🏐 排球 | 粤海、丽湖 | - |
-| 🏊 游泳 | 粤海、丽湖 | - |
-| 🏓 乒乓球 | 粤海、丽湖 | - |
-| 🎱 桌球 | 粤海、丽湖 | - |
+## 🚀 使用方法
 
-## 🛠️ 技术规格
+### 1️⃣ 安装
 
-### 兼容性
+1. 安装浏览器插件 [Tampermonkey](https://www.tampermonkey.net/)
+2. 访问 [Greasy Fork](https://greasyfork.org/scripts/537386) 或点击脚本头部的 `@downloadURL`
+3. 点击「安装此脚本」
 
-- **📱 移动端**: iOS Safari 14+, Android Chrome 80+
-- **💻 桌面端**: Chrome 90+, Firefox 88+, Edge 90+
-- **🔧 核心技术**: ES6+ JavaScript, Fetch API, Touch/Pointer Events
+### 2️⃣ 配置
 
-### 性能优化
+访问深大场馆预约页面:
 
-- **⚡ 请求控制**: 智能频率限制，避免服务器过载
-- **🧹 内存管理**: 自动清理机制，防止内存泄漏
-- **🔋 电池监控**: 移动端电池状态感知
-- **📶 网络适应**: 网络状态检测和自动重连
+- 校内: `https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/`
+- VPN: `https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/`
 
-## 📖 使用指南
+#### 基础设置
 
-### 🔧 安装步骤
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| 学号/工号 | 8-12位数字 | `2300123999` |
+| 姓名 | 2-10个汉字 | `张三` |
+| 预约日期 | 自动默认明天 | `2025-10-31` |
+| 运动项目 | 羽毛球/篮球/网球/乒乓球/排球/桌球 | `羽毛球` |
+| 校区 | 粤海/丽湖 | `丽湖` |
 
-#### 1. 安装浏览器扩展
+#### 高级设置
 
-首先需要安装 Tampermonkey 扩展：
+| 参数 | 范围 | 默认值 | 说明 |
+|------|------|--------|------|
+| 查询间隔 | 1-60秒 | 1秒 | 每次查询的时间间隔 |
+| 最大重试 | 10-9999次 | 20000次 | 最大查询次数 |
+| 请求超时 | 5-60秒 | 10秒 | 单次请求超时时间 |
 
-- **Chrome**: [Chrome Web Store](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
-- **Firefox**: [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
-- **Safari**: [Safari Extensions](https://apps.apple.com/us/app/tampermonkey/id1482490089)
-- **Edge**: [Microsoft Store](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)
+#### 场馆优先级(丽湖羽毛球)
 
-#### 2. 安装脚本
+- **至畅体育馆**: 优先级最高
+  - 5号场、10号场(最优)
+  - 其他场地次之
+  - 1号场、6号场相对较差
+- **至快体育馆**: 次选
+- **全部场馆**: 不限制
 
-点击下方链接直接安装：
+### 3️⃣ 操作
 
-**[🚀 立即安装 SZU Sports 脚本](https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票)**
+#### 立即抢票
 
-#### 3. 访问预约页面
+1. 点击「⚙️ 配置设置」展开配置面板
+2. 填写个人信息和预约参数
+3. 勾选优先时间段(最多2个)
+4. 点击「💾 保存配置」
+5. 点击「🚀 开始抢票」
 
-根据你的网络环境选择合适的访问方式：
+#### 定时抢票
 
-**校园网环境（推荐）:**
+1. 完成基础配置
+2. 在「⏰ 定时抢票」区域选择日期和时间
+3. 点击「⏰ 设置定时」
+4. 系统将在指定时间自动开始抢票
 
-```
-https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
-```
+---
 
-**校外网络（WebVPN）:**
+## 🎮 快捷键(仅桌面端)
 
-```
-https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
-```
+| 快捷键 | 功能 |
+|--------|------|
+| `Ctrl + Shift + S` | 开始/停止抢票 |
+| `Ctrl + Shift + H` | 显示/隐藏面板 |
 
-### 🎮 使用方法
+---
 
-#### 基础操作
+## 🏆 支持的运动项目
 
-1. **打开预约页面**: 访问深圳大学场馆预约系统
-2. **显示控制面板**: 点击页面右上角的浮动按钮 🎾
-3. **配置参数**: 填写个人信息和预约偏好
-4. **开始抢票**: 点击"🚀 开始抢票"按钮
+| 项目 | 代码 | 支持校区 | 特殊说明 |
+|------|------|----------|----------|
+| 🏸 羽毛球 | 001 | 粤海、丽湖 | 丽湖支持场馆优先级 |
+| 🏀 篮球 | 005 | 粤海、丽湖 | 粤海校区使用团体预约模式 |
+| 🎾 网球 | 004 | 粤海、丽湖 | - |
+| 🏐 排球 | 003 | 粤海、丽湖 | - |
+| 🏓 乒乓球 | 013 | 粤海、丽湖 | - |
+| 🎱 桌球 | 016 | 粤海、丽湖 | - |
 
-#### 配置说明
+---
 
-**用户信息**
+## 📊 日志说明
 
-- 学号/工号: 你的深大学号或工号
-- 姓名: 与学号对应的真实姓名
+| 图标 | 类型 | 含义 |
+|------|------|------|
+| 🚀 | 启动 | 开始抢票 |
+| 🔍 | 查询 | 正在查询场地 |
+| 🎉 | 成功 | 找到可预约场地 |
+| ✅ | 成功 | 预约成功 |
+| ❌ | 错误 | 操作失败 |
+| ⚠️ | 警告 | 需要注意 |
+| 📊 | 统计 | 运行统计信息 |
+| ⏰ | 定时 | 定时任务相关 |
 
-**预约设置**
+---
 
-- 预约日期: 自动设置为明天（可手动调整）
-- 校区: 粤海校区 / 丽湖校区
-- 运动项目: 选择要预约的运动项目
-- 优先时间段: 按优先级选择多个时间段
+## 🔧 技术特性
 
-**高级参数**
+### 架构模块
 
-- 查询间隔: 请求间隔时间（建议1-3秒）
-- 最大重试: 最大重试次数（建议1000-20000）
-- 请求超时: 单次请求超时时间（建议10-30秒）
+#### 1. 设备检测模块(`Device`)
 
-#### 快捷键（桌面端）
+- 自动识别 iOS、Android、iPad、桌面设备
+- 支持触控和指针事件检测
 
-- `Ctrl + Shift + S`: 开始/停止抢票
-- `Ctrl + Shift + H`: 显示/隐藏控制面板
-- `Ctrl + Shift + C`: 显示/隐藏配置区域
+#### 2. 样式管理器(`Styles`)
 
-### 📱 移动端使用
+- 响应式尺寸适配
+- 动态计算 UI 元素大小
 
-#### iOS 设备
+#### 3. 存储管理器(`Storage`)
 
-- 支持 Safari 14+ 浏览器
-- 优化的触摸交互体验
-- 自动屏幕唤醒锁定
-- 电池状态监控
+- 多级存储策略: localStorage → sessionStorage → 内存存储
+- 自动清理过期数据(7天)
+- 版本兼容性检查
 
-#### Android 设备
+#### 4. 网络错误处理器(`NetworkErrorHandler`)
 
-- 支持 Chrome 80+ 浏览器
-- 完整的触摸事件支持
-- 后台运行优化
+- 错误分类: 限流、服务器错误、认证错误、网络错误等
+- 智能重试策略
+- 指数退避算法
 
-### 🎯 最佳实践
+#### 5. 请求频率控制器(`RequestThrottler`)
 
-#### 提高成功率的建议
+- 限制每秒最大请求数(2次)
+- 限制并发请求数(3个)
+- 自动队列管理
 
-1. **网络环境**: 使用稳定的校园网或高速网络
-2. **时间选择**: 避开高峰期（12:00-13:00）
-3. **参数调优**: 根据网络情况调整查询间隔
-4. **多时段选择**: 选择多个备选时间段增加成功率
-5. **提前准备**: 在开放预约前配置好所有参数
+#### 6. 智能重试机制(`SmartRetry`)
 
-#### 常见问题解决
+- 追踪连续失败次数
+- 自动调整重试策略
 
-**Q: 脚本无法启动？**
-A: 检查是否正确安装 Tampermonkey 扩展，确认脚本已启用
+#### 7. 移动端优化(`MobileOptimization`)
 
-**Q: 频繁出现网络错误？**
-A: 适当增加查询间隔时间，检查网络连接稳定性
+- 屏幕唤醒锁定
+- 页面可见性监控
+- 滚动性能优化
 
-**Q: 移动端操作不响应？**
-A: 确保使用支持的浏览器版本，避免在低电量时使用
+#### 8. 企业微信推送(`WeChatNotifier`)
 
-**Q: 预约失败率高？**
-A: 选择多个时间段，避开预约高峰期，检查个人信息是否正确
+- 跨域请求支持
+- 消息模板化
 
-## 📁 项目结构
+---
 
-```
-SZU_Sports/
-├── README.md              # 项目文档
-├── index.html             # 项目主页
-├── SZU_Sports.js          # 核心脚本文件
-└── LICENSE                # 开源协议
-```
+## 🔒 隐私与安全
 
-### 核心文件说明
+- ✅ 所有数据仅保存在本地浏览器
+- ✅ 不上传任何个人信息到第三方服务器
+- ✅ 企业微信推送使用官方 API,可选启用
+- ✅ 开源代码,可自行审计
 
-- **SZU_Sports.js**: 主要的用户脚本，包含所有功能逻辑
-- **index.html**: 项目展示页面，提供安装指导和功能介绍
-- **README.md**: 详细的项目文档和使用说明
+---
 
-## 🔄 更新日志
+## ❓ 常见问题
 
-### v1.1.5 (2025-01-19)
+### Q: 为什么一直显示"暂无可预约场地"?
 
-- ✨ 新增移动端电池状态监控
-- 🐛 修复 iOS 设备触摸事件处理问题
-- ⚡ 优化请求频率控制算法
-- 🛡️ 增强错误恢复机制
-- 📱 改进移动端用户界面
+**A**: 可能原因:
 
-### v1.1.4 (2025-01-15)
+1. 预约时间未开放(通常在前一天中午12:30开放)
+2. 场地已被预约完
+3. 选择的时间段不在可预约范围内
 
-- 🎯 新增场馆优选功能（羽毛球）
-- 📱 完善移动端触摸优化
-- 🔄 改进智能重试策略
-- 💾 优化配置存储机制
+### Q: 如何提高抢票成功率?
 
-### v1.1.3 (2025-01-10)
+**A**: 建议:
 
-- 🚀 新增跨平台兼容性支持
-- 🛠️ 重构核心预约逻辑
-- 📊 添加实时状态监控
-- 🔧 修复多项已知问题
+1. 设置定时任务在开放时间准点触发
+2. 选择多个备选时间段
+3. 将查询间隔设为最小(1秒)
+4. 保持网络稳定
 
-## 🤝 贡献指南
+### Q: 移动端如何保持页面不息屏?
 
-我们欢迎所有形式的贡献！无论是报告 bug、提出功能建议，还是提交代码改进。
+**A**: 脚本自动申请屏幕唤醒锁定,无需手动操作。如失效,请检查浏览器权限设置。
 
-### 如何贡献
+### Q: 可以同时预约多个校区吗?
 
-1. **Fork 项目**: 点击右上角的 Fork 按钮
-2. **创建分支**: `git checkout -b feature/your-feature-name`
-3. **提交更改**: `git commit -am 'Add some feature'`
-4. **推送分支**: `git push origin feature/your-feature-name`
-5. **创建 Pull Request**: 在 GitHub 上创建 PR
+**A**: 不可以,每次只能选择一个校区。如需预约多个校区,需要分别运行。
 
-### 贡献类型
+### Q: 定时任务刷新页面后会丢失吗?
 
-- 🐛 **Bug 报告**: 发现问题请创建 Issue
-- 💡 **功能建议**: 有好想法请告诉我们
-- 📝 **文档改进**: 帮助完善文档
-- 🔧 **代码优化**: 提交代码改进
-- 🌐 **国际化**: 支持多语言
+**A**: 不会,定时任务会自动保存并在页面刷新后恢复。
 
-### 开发环境
+---
 
-```bash
-# 克隆项目
-git clone https://github.com/zskfree/SZU_Sports.git
+## 📝 更新日志
 
-# 进入目录
-cd SZU_Sports
+### v1.1.7 (2025-10-30)
 
-# 在浏览器中安装 Tampermonkey 扩展
-# 然后直接编辑 SZU_Sports.js 文件进行开发
-```
+- ✨ 新增定时抢票功能
+- ✨ 新增实时倒计时显示
+- 🔧 优化篮球团体预约模式识别
+- 🔧 改进错误处理和重试逻辑
+- 🐛 修复重复预约检测问题
 
-## 📄 许可证
+---
 
-本项目采用 [MIT License](LICENSE) 开源协议。
+## 🤝 贡献与反馈
 
-```
-MIT License
+- **问题反馈**: [GitHub Issues](https://github.com/zskfree/SZU_Sports)
+- **功能建议**: 欢迎提交 Pull Request
+- **Greasy Fork**: [脚本主页](https://greasyfork.org/scripts/537386)
 
-Copyright (c) 2025 zskfree
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+---
 
 ## ⚠️ 免责声明
 
-- 本脚本仅供学习和研究使用，请勿用于商业用途
-- 使用本脚本时请遵守学校相关规定和网络使用政策
-- 作者不对使用本脚本造成的任何后果承担责任
-- 请合理使用，避免对服务器造成过大压力
-
-## 📞 联系方式
-
-- **GitHub**: [@zskfree](https://github.com/zskfree)
-- **项目地址**: [https://github.com/zskfree/SZU_Sports](https://github.com/zskfree/SZU_Sports)
-- **脚本更新**: [Greasy Fork](https://greasyfork.org/zh-CN/scripts/537386)
-- **问题反馈**: [GitHub Issues](https://github.com/zskfree/SZU_Sports/issues)
-
-## 🙏 致谢
-
-感谢所有为这个项目做出贡献的开发者和用户！
-
-- 感谢深圳大学提供的场馆预约系统
-- 感谢 Tampermonkey 团队提供的优秀扩展
-- 感谢所有测试用户的反馈和建议
+本脚本仅供学习交流使用,请遵守学校相关规定。使用本脚本产生的任何后果由使用者自行承担。
 
 ---
 
-<div align="center">
+## 📄 许可证
 
-**如果这个项目对你有帮助，请给它一个 ⭐ Star！**
+MIT License © 2025 zskfree
 
-Made with ❤️ by [zskfree](https://github.com/zskfree) | 2025
+---
 
-</div>
+**⭐ 如果觉得有用,请给个 Star!**
