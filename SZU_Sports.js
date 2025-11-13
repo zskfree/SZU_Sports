@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.1.7
+// @version      1.1.8
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.1.7',
+        version: '1.1.8',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -346,13 +346,126 @@
     const TIME_SLOTS = ["08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00", "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00", "21:00-22:00"];
 
     // ==================== 配置管理 ====================
+
+    // 新增: 模块化场馆配置
+    const VENUE_CONFIG = {
+        "羽毛球": {
+            "丽湖": {
+                options: [
+                    { value: '至畅', label: '🏆 至畅体育馆' },
+                    { value: '至快', label: '⚡ 至快体育馆' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "至畅") return fullName.includes("至畅");
+                    if (preferredVenue === "至快") return fullName.includes("至快");
+                    return false;
+                }
+            },
+            "粤海": {
+                options: [
+                    { value: '运动广场东馆羽毛球场', label: '🏸 运动广场东馆羽毛球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "运动广场东馆羽毛球场") return fullName.includes("东馆") || fullName.includes("运动广场");
+                    return false;
+                }
+            }
+        },
+        "网球": {
+            "粤海": {
+                options: [
+                    { value: '运动广场海边网球场', label: '🌊 运动广场海边网球场' },
+                    { value: '北区网球场', label: '🎾 北区网球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "运动广场海边网球场") return fullName.includes("海边") || fullName.includes("运动广场");
+                    if (preferredVenue === "北区网球场") return fullName.includes("北区");
+                    return false;
+                }
+            },
+            "丽湖": {
+                options: [
+                    { value: '北区体育场网球场', label: '🏟️ 北区体育场网球场' },
+                    { value: '南区室外网球场', label: '🌳 南区室外网球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "北区体育场网球场") return fullName.includes("北区体育场");
+                    if (preferredVenue === "南区室外网球场") return fullName.includes("南区室外");
+                    return false;
+                }
+            }
+        },
+        "排球": {
+            "粤海": {
+                options: [
+                    { value: '西馆排球场(包场)', label: '🏐 西馆排球场(包场)' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "西馆排球场(包场)") return fullName.includes("西馆") || fullName.includes("排球场");
+                    return false;
+                }
+            },
+            "丽湖": {
+                options: [
+                    { value: '风雨操场排球场', label: '☔ 风雨操场排球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "风雨操场排球场") return fullName.includes("风雨操场");
+                    return false;
+                }
+            }
+        },
+        "篮球": {
+            "粤海": {
+                options: [
+                    { value: '运动广场天台篮球场', label: '🏙️ 运动广场天台篮球场' },
+                    { value: '运动广场东馆室内篮球场', label: '🏀 运动广场东馆室内篮球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "运动广场天台篮球场") return fullName.includes("天台") || fullName.includes("运动广场");
+                    if (preferredVenue === "运动广场东馆室内篮球场") return fullName.includes("东馆") || fullName.includes("室内篮球场");
+                    return false;
+                }
+            },
+            "丽湖": {
+                options: [
+                    { value: '风雨操场篮球场', label: '🏀 风雨操场篮球场' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "风雨操场篮球场") return fullName.includes("风雨操场");
+                    return false;
+                }
+            }
+        },
+        "乒乓球": {
+            "粤海": {
+                options: [
+                    { value: '北区乒乓球馆', label: '🏓 北区乒乓球馆' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "北区乒乓球馆") return fullName.includes("北区");
+                    return false;
+                }
+            },
+            "丽湖": {
+                options: [
+                    { value: '体育馆乒乓球室', label: '🏓 体育馆乒乓球室' },
+                ],
+                filter: (fullName, preferredVenue) => {
+                    if (preferredVenue === "体育馆乒乓球室") return fullName.includes("体育馆");
+                    return false;
+                }
+            }
+        },
+    };
+
     function getTomorrowDate() {
         const d = new Date();
         d.setDate(d.getDate() + 1);
         return d.toISOString().split('T')[0];
     }
 
-    // 新增: 根据运动项目和校区获取正确的YYLX
+    // 根据运动项目和校区获取正确的YYLX
     function getYYLX(sport, campus) {
         // 粤海篮球需要使用团体预约模式
         if (sport === "篮球" && campus === "粤海") {
@@ -360,6 +473,20 @@
         }
         // 其他情况使用单人散场模式
         return "1.0";
+    }
+
+    // 判断是否显示场馆选择
+    function shouldShowVenueSelection(sport, campus) {
+        return !!(VENUE_CONFIG[sport] && VENUE_CONFIG[sport][campus]);
+    }
+
+    // 获取场馆选项
+    function getVenueOptions(sport, campus) {
+        const baseOptions = VENUE_CONFIG[sport]?.[campus]?.options || [];
+        return [
+            ...baseOptions,
+            { value: '全部', label: '🔄 全部场馆' }
+        ];
     }
 
     const DEFAULT_CONFIG = {
@@ -381,6 +508,10 @@
         config.TARGET_DATE = getTomorrowDate();
         // 根据当前配置更新YYLX
         config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
+        // 确保场馆配置有效
+        if (!shouldShowVenueSelection(config.SPORT, config.CAMPUS)) {
+            config.PREFERRED_VENUE = '全部';
+        }
         return config;
     }
 
@@ -391,29 +522,31 @@
 
         set(targetTime) {
             this.clear();
-            this.targetTime = targetTime;
-            Storage.set('scheduledTime', targetTime);
 
             const now = Date.now();
             const delay = targetTime - now;
 
-            if (delay > 0) {
-                this.timerId = setTimeout(() => {
-                    addLog(`⏰ 定时任务触发，开始抢票！`, 'success');
-                    if (!isRunning) {
-                        updateConfigFromUI();
-                        if (validateConfig()) startBooking();
-                    }
-                    this.clear();
-                }, delay);
-
-                const targetDate = new Date(targetTime);
-                addLog(`⏰ 已设置定时任务: ${targetDate.toLocaleString()}`, 'success');
-                return true;
-            } else {
+            if (delay <= 0) {
                 addLog(`❌ 定时时间必须晚于当前时间`, 'error');
                 return false;
             }
+
+            this.targetTime = targetTime;
+            Storage.set('scheduledTime', targetTime);
+
+            this.timerId = setTimeout(() => {
+                addLog(`⏰ 定时任务触发，开始抢票！`, 'success');
+                if (!isRunning) {
+                    updateConfigFromUI();
+                    if (validateConfig()) startBooking();
+                }
+                this.clear();
+            }, delay);
+
+            const targetDate = new Date(targetTime);
+            addLog(`⏰ 已设置定时任务: ${targetDate.toLocaleString('zh-CN')}`, 'success');
+            addLog(`⏱️ 距离开始还有: ${this.formatRemaining()}`, 'info');
+            return true;
         },
 
         clear() {
@@ -428,7 +561,7 @@
         getRemaining() {
             if (!this.targetTime) return null;
             const remaining = Math.max(0, this.targetTime - Date.now());
-            return remaining;
+            return remaining > 0 ? remaining : null;
         },
 
         formatRemaining() {
@@ -447,8 +580,10 @@
         restore() {
             const savedTime = Storage.get('scheduledTime');
             if (savedTime && savedTime > Date.now()) {
-                this.set(savedTime);
-                return true;
+                return this.set(savedTime);
+            } else if (savedTime) {
+                // 清理过期的定时任务
+                Storage.remove('scheduledTime');
             }
             return false;
         }
@@ -463,7 +598,7 @@
     let controlPanel = null;
     let floatingButton = null;
     let isPanelVisible = Storage.get('panelVisible', true);
-    let countdownInterval = null; // 新增: 倒计时更新定时器
+    let countdownInterval = null; // 倒计时更新定时器
 
     function getMaxBookings() {
         return Math.min(CONFIG.PREFERRED_TIMES.length, 2);
@@ -544,7 +679,6 @@
 
         panel.style.cssText = `position:fixed;${mobileStyles}background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:15px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:white;border:2px solid rgba(255,255,255,0.2);overflow-y:auto;transition:opacity 0.3s ease,transform 0.3s ease;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;`;
 
-        // 新增: 获取今天的日期字符串
         const getTodayDate = () => {
             const d = new Date();
             return d.toISOString().split('T')[0];
@@ -552,7 +686,7 @@
 
         panel.innerHTML = `
     <div style="margin-bottom:15px;text-align:center;position:relative;">
-        <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.7</h3>
+        <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.8</h3>
         <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
         <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
     </div>
@@ -582,18 +716,18 @@
                 ${Object.keys(CAMPUS_CODES).map(c => `<option value="${c}" ${c === CONFIG.CAMPUS ? 'selected' : ''}>${c}</option>`).join('')}
             </select>
         </div>
-        <div id="venue-selection" style="margin-bottom:12px;display:${CONFIG.SPORT === '羽毛球' && CONFIG.CAMPUS === '丽湖' ? 'block' : 'none'};">
+        <div id="venue-selection" style="margin-bottom:12px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">
             <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 优先场馆:</label>
             <select id="preferred-venue" style="${Styles.input}">
-                <option value="至畅" ${CONFIG.PREFERRED_VENUE === '至畅' ? 'selected' : ''}>🏆 至畅体育馆</option>
-                <option value="至快" ${CONFIG.PREFERRED_VENUE === '至快' ? 'selected' : ''}>⚡ 至快体育馆</option>
-                <option value="全部" ${CONFIG.PREFERRED_VENUE === '全部' ? 'selected' : ''}>🔄 全部场馆</option>
+                ${getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt =>
+            `<option value="${opt.value}" ${CONFIG.PREFERRED_VENUE === opt.value ? 'selected' : ''}>${opt.label}</option>`
+        ).join('')}
             </select>
         </div>
         <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏰ 优先时间段:</label>
-            <div id="time-slots-container" style="max-height:${Device.isMobile ? '120px' : '100px'};overflow-y:auto;background:rgba(255,255,255,0.1);border-radius:4px;padding:5px;">
-                ${TIME_SLOTS.map(slot => `<label style="display:block;font-size:${Device.isMobile ? '14px' : '11px'};margin:${Device.isMobile ? '5px 0' : '2px 0'};cursor:pointer;"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:5px;transform:${Device.isMobile ? 'scale(1.2)' : 'scale(1)'};">${slot}</label>`).join('')}
+            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:8px;">⏰ 优先时间段:</label>
+            <div id="time-slots-container" style="background:rgba(255,255,255,0.1);border-radius:4px;padding:8px;display:grid;grid-template-columns:repeat(${Device.isMobile ? '2' : '2'},1fr);gap:${Device.isMobile ? '6px' : '4px'};">
+                ${TIME_SLOTS.map(slot => `<label style="display:flex;align-items:center;font-size:${Device.isMobile ? '13px' : '11px'};cursor:pointer;padding:${Device.isMobile ? '4px' : '2px'};"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:5px;transform:${Device.isMobile ? 'scale(1.2)' : 'scale(1)'};flex-shrink:0;"><span style="white-space:nowrap;">${slot}</span></label>`).join('')}
             </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -616,7 +750,7 @@
     <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:8px;margin-bottom:15px;">
         <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span></div>
         <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> | 🏟️ <span id="display-sport">${CONFIG.SPORT}</span> | 🏫 <span id="display-campus">${CONFIG.CAMPUS}</span></div>
-        <div id="venue-display" style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;display:${CONFIG.SPORT === '羽毛球' && CONFIG.CAMPUS === '丽湖' ? 'block' : 'none'};">🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE}</span></div>
+        <div id="venue-display" style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE}</span></div>
         <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span></div>
         <div style="font-size:${Device.isMobile ? '15px' : '13px'};">⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s | 重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> | 超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s</div>
         <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-top:5px;">🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span></div>
@@ -724,22 +858,37 @@
             const campus = panel.querySelector('#campus').value;
             const venueSelection = panel.querySelector('#venue-selection');
             const venueDisplay = panel.querySelector('#venue-display');
-            const show = sport === '羽毛球' && campus === '丽湖';
+            const preferredVenueSelect = panel.querySelector('#preferred-venue');
+
+            const show = shouldShowVenueSelection(sport, campus);
+
             if (venueSelection) venueSelection.style.display = show ? 'block' : 'none';
             if (venueDisplay) venueDisplay.style.display = show ? 'block' : 'none';
+
+            // 更新场馆选项
+            if (preferredVenueSelect && show) {
+                const options = getVenueOptions(sport, campus);
+                preferredVenueSelect.innerHTML = options.map(opt =>
+                    `<option value="${opt.value}">${opt.label}</option>`
+                ).join('');
+            }
         };
 
         panel.querySelector('#sport-type').addEventListener('change', updateVenueDisplay);
         panel.querySelector('#campus').addEventListener('change', updateVenueDisplay);
 
+
         Interaction.bind(panel.querySelector('#save-config'), () => {
             updateConfigFromUI();
             updateDisplayConfig();
-            addLog('✅ 配置已保存', 'success');
+            addLog('💾 配置已保存', 'success');
+
             const area = panel.querySelector('#config-area');
             const btn = panel.querySelector('#toggle-config');
-            area.style.display = 'none';
-            btn.textContent = '⚙️ 显示配置';
+            if (area && btn) {
+                area.style.display = 'none';
+                btn.textContent = '⚙️ 配置设置';
+            }
         });
 
         Interaction.bind(panel.querySelector('#start-btn'), () => {
@@ -751,7 +900,6 @@
             }
         });
 
-        // 新增: 定时任务按钮事件
         Interaction.bind(panel.querySelector('#set-schedule-btn'), () => {
             const dateInput = panel.querySelector('#scheduled-date').value;
             const timeInput = panel.querySelector('#scheduled-time').value;
@@ -761,7 +909,24 @@
                 return;
             }
 
-            const targetTime = new Date(`${dateInput} ${timeInput}`).getTime();
+            // 构建完整的日期时间字符串
+            const dateTimeString = `${dateInput}T${timeInput}:00`;
+            const targetTime = new Date(dateTimeString).getTime();
+
+            // 验证日期有效性
+            if (isNaN(targetTime)) {
+                addLog('❌ 日期时间格式无效', 'error');
+                return;
+            }
+
+            // 检查是否是未来时间
+            const now = Date.now();
+            if (targetTime <= now) {
+                addLog('❌ 定时时间必须晚于当前时间', 'error');
+                addLog(`ℹ️ 当前时间: ${new Date(now).toLocaleString('zh-CN')}`, 'info');
+                addLog(`ℹ️ 设置时间: ${new Date(targetTime).toLocaleString('zh-CN')}`, 'info');
+                return;
+            }
 
             if (ScheduledTask.set(targetTime)) {
                 startCountdown();
@@ -788,7 +953,6 @@
         }
     }
 
-    // 新增: 倒计时更新函数
     function updateCountdownDisplay(text) {
         const display = document.getElementById('countdown-display');
         if (display) display.textContent = text;
@@ -796,13 +960,27 @@
 
     function startCountdown() {
         stopCountdown();
-        countdownInterval = setInterval(() => {
-            const remaining = ScheduledTask.formatRemaining();
-            if (remaining === '未设置') {
+
+        const updateDisplay = () => {
+            const remaining = ScheduledTask.getRemaining();
+            if (remaining === null) {
                 stopCountdown();
                 updateCountdownDisplay('未设置定时任务');
-            } else {
-                updateCountdownDisplay(`⏰ 倒计时: ${remaining}`);
+                return false;
+            }
+
+            const formatted = ScheduledTask.formatRemaining();
+            updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+            return true;
+        };
+
+        // 立即更新一次
+        if (!updateDisplay()) return;
+
+        // 每秒更新一次
+        countdownInterval = setInterval(() => {
+            if (!updateDisplay()) {
+                stopCountdown();
             }
         }, 1000);
     }
@@ -820,11 +998,9 @@
         const campus = document.getElementById('campus').value;
         const sport = document.getElementById('sport-type').value;
 
-        let venue = '至畅';
-        if (sport === '羽毛球' && campus === '丽湖') {
-            venue = document.getElementById('preferred-venue')?.value || '至畅';
-        } else if (sport === '羽毛球' && campus === '粤海') {
-            venue = '全部';
+        let venue = '全部';
+        if (shouldShowVenueSelection(sport, campus)) {
+            venue = document.getElementById('preferred-venue')?.value || '全部';
         }
 
         CONFIG = {
@@ -840,19 +1016,32 @@
             RETRY_INTERVAL: parseInt(document.getElementById('retry-interval').value),
             MAX_RETRY_TIMES: parseInt(document.getElementById('max-retry').value),
             REQUEST_TIMEOUT: parseInt(document.getElementById('request-timeout').value),
-            YYLX: getYYLX(sport, campus) // 使用动态获取的YYLX值
+            YYLX: getYYLX(sport, campus)
         };
 
         Storage.set('bookingConfig', CONFIG);
         updateProgress();
 
-        // 添加日志显示当前使用的YYLX
         addLog(`⚙️ 预约模式: ${CONFIG.YYLX === "2.0" ? "团体预约" : "单人散场"}`, 'info');
+
+        if (shouldShowVenueSelection(sport, campus) && venue !== '全部') {
+            addLog(`🏟️ 优先场馆: ${venue}`, 'info');
+        }
     }
 
     function updateDisplayConfig() {
         document.getElementById('display-user').textContent = `${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})`;
-        document.getElementById('display-date').textContent = CONFIG.TARGET_DATE;
+
+        // 格式化日期为 年/月/日
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+        };
+
+        document.getElementById('display-date').textContent = formatDate(CONFIG.TARGET_DATE);
         document.getElementById('display-sport').textContent = CONFIG.SPORT;
         document.getElementById('display-campus').textContent = CONFIG.CAMPUS;
         document.getElementById('display-venue').textContent = CONFIG.PREFERRED_VENUE;
@@ -999,28 +1188,39 @@
 
                     const fullName = room.CGBM_DISPLAY || room.CDMC || '';
 
-                    if (CONFIG.SPORT === "羽毛球" && CONFIG.CAMPUS === "丽湖" && CONFIG.PREFERRED_VENUE !== "全部") {
-                        if ((CONFIG.PREFERRED_VENUE === "至畅" && !fullName.includes("至畅")) ||
-                            (CONFIG.PREFERRED_VENUE === "至快" && !fullName.includes("至快"))) {
-                            return;
+                    // 模块化场馆过滤逻辑
+                    if (shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) && CONFIG.PREFERRED_VENUE !== "全部") {
+                        const venueFilter = VENUE_CONFIG[CONFIG.SPORT]?.[CONFIG.CAMPUS]?.filter;
+                        if (venueFilter && !venueFilter(fullName, CONFIG.PREFERRED_VENUE)) {
+                            return; // 如果不匹配优先场馆，则跳过
                         }
                     }
 
                     let venuePriority = 2, courtPriority = 0;
 
-                    if (CONFIG.CAMPUS === "丽湖" && CONFIG.SPORT === "羽毛球") {
-                        if (fullName.includes("至畅")) {
-                            venuePriority = 0;
-                            const name = room.CDMC || '';
-                            if (name.includes("5号场") || name.includes("五号场")) courtPriority = -2;
-                            else if (name.includes("10号场") || name.includes("十号场")) courtPriority = -1;
-                            else if (name.match(/[^0-9]1号场|^1号场|一号场/) || name.includes("6号场") || name.includes("六号场")) courtPriority = 2;
-                        } else if (fullName.includes("至快")) {
-                            venuePriority = 1;
+                    if (CONFIG.CAMPUS === "丽湖") {
+                        if (CONFIG.SPORT === "羽毛球") {
+                            if (fullName.includes("至畅")) {
+                                venuePriority = 0;
+                                const name = room.CDMC || '';
+                                if (name.includes("5号场") || name.includes("五号场")) courtPriority = -2;
+                                else if (name.includes("10号场") || name.includes("十号场")) courtPriority = -1;
+                                else if (name.match(/[^0-9]1号场|^1号场|一号场/) || name.includes("6号场") || name.includes("六号场")) courtPriority = 2;
+                            } else if (fullName.includes("至快")) {
+                                venuePriority = 1;
+                            }
                         }
-                    } else if (CONFIG.SPORT === "篮球") {
-                        venuePriority = 0;
-                        courtPriority = 0;
+                    } else if (CONFIG.CAMPUS === "粤海") {
+                        if (CONFIG.SPORT === "篮球") {
+                            venuePriority = 0;
+                            courtPriority = 0;
+                        } else if (CONFIG.SPORT === "网球") {
+                            if (fullName.includes("海边")) {
+                                venuePriority = 0;
+                            } else if (fullName.includes("北区")) {
+                                venuePriority = 1;
+                            }
+                        }
                     }
 
                     let availableCount = null;
@@ -1087,20 +1287,15 @@
 
             const contentType = res.headers.get('content-type') || '';
 
-            // 检查是否返回HTML错误页面
             if (contentType.includes('text/html')) {
                 const html = await res.text();
-
-                // 尝试从HTML中提取错误信息
                 const errorMatch = html.match(/<h4>出错信息：<\/h4>[\s\S]*?<div class="bh-text-caption bh-color-caption">\s*(.*?)\s*<\/div>/);
                 const errorMsg = errorMatch ? errorMatch[1].trim() : '系统异常';
 
                 addLog(`⚠️ ${errorMsg}`, 'warning');
 
-                // 判断是否为已预约相同时段
                 if (errorMsg.includes('已预约该场地的相同时间段') || errorMsg.includes('已预约')) {
                     addLog(`📌 ${timeSlot} 已预约过，跳过`, 'info');
-                    // 标记该时段为已预约，避免重复尝试
                     successfulBookings.push({
                         timeSlot,
                         venueName: '已预约',
@@ -1114,7 +1309,6 @@
                 return false;
             }
 
-            // 正常JSON响应
             const result = await res.json();
 
             if (result.code === "0" && result.msg === "成功") {
@@ -1148,7 +1342,6 @@
                 return false;
             }
         } catch (error) {
-            // 捕获JSON解析错误
             if (error.message.includes('JSON') || error.message.includes('Unexpected token')) {
                 addLog(`⚠️ 服务器返回异常格式`, 'warning');
                 return false;
@@ -1175,8 +1368,17 @@
             btn.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
         }
 
+        // 格式化日期显示
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+        };
+
         addLog(`🚀 开始抢票！`, 'success');
-        addLog(`📊 ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${CONFIG.TARGET_DATE}`, 'info');
+        addLog(`📊 ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${formatDate(CONFIG.TARGET_DATE)}`, 'info');
 
         try {
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
@@ -1211,13 +1413,11 @@
                                 groups[time].sort((a, b) => a.courtPriority - b.courtPriority || a.venuePriority - b.venuePriority);
                                 const result = await bookSlot(groups[time][0]);
 
-                                // 处理各种预约结果
                                 if (result === 'limit_reached') {
                                     addLog(`🏁 已达预约上限，停止抢票`, 'success');
                                     break;
                                 }
                                 if (result === 'already_booked') {
-                                    // 该时段已预约，继续下一个时段
                                     continue;
                                 }
 
@@ -1283,6 +1483,27 @@
         const cleaned = Storage.cleanup();
         if (cleaned) addLog(`🧹 清理 ${cleaned} 个过期项`, 'info');
 
+        const getTodayDateTime = () => {
+            const d = new Date();
+            const date = d.toISOString().split('T')[0];
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return { date, time: `${hours}:${minutes}` };
+        };
+
+        // 设置默认定时时间为当前时间的下一个小时
+        const defaultDateTime = getTodayDateTime();
+        const scheduledDateInput = document.getElementById('scheduled-date');
+        const scheduledTimeInput = document.getElementById('scheduled-time');
+
+        if (scheduledDateInput && scheduledTimeInput) {
+            scheduledDateInput.value = defaultDateTime.date;
+            // 默认设置为下一个整点
+            const nextHour = new Date();
+            nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+            scheduledTimeInput.value = `${String(nextHour.getHours()).padStart(2, '0')}:00`;
+        }
+
         if (Device.isMobile) MobileOptimization.init();
         SmartRetry.reset();
 
@@ -1294,9 +1515,10 @@
 
         document.getElementById('target-date').value = getTomorrowDate();
 
-        // 新增: 恢复定时任务
+        // 恢复定时任务
         if (ScheduledTask.restore()) {
             startCountdown();
+            addLog(`🔄 已恢复定时任务`, 'success');
         }
 
         addLog(`🎮 抢票助手已就绪 (${Device.isIPad ? 'iPad' : (Device.isMobile ? '移动端' : '桌面端')})`, 'success');
@@ -1310,7 +1532,17 @@
                 document.getElementById('target-date').value = newDate;
                 updateDisplayConfig();
                 Storage.set('bookingConfig', CONFIG);
-                addLog(`📅 日期已更新: ${newDate}`, 'info');
+
+                // 格式化日期显示
+                const formatDate = (dateStr) => {
+                    const date = new Date(dateStr);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}/${month}/${day}`;
+                };
+
+                addLog(`📅 日期已更新: ${formatDate(newDate)}`, 'info');
             }
         }
     });
