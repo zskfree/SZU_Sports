@@ -504,15 +504,24 @@
 
     function loadConfig() {
         const saved = Storage.get('bookingConfig', null);
-        const config = saved ? { ...DEFAULT_CONFIG, ...saved } : DEFAULT_CONFIG;
-        config.TARGET_DATE = getTomorrowDate();
-        // 根据当前配置更新YYLX
-        config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
-        // 确保场馆配置有效
-        if (!shouldShowVenueSelection(config.SPORT, config.CAMPUS)) {
-            config.PREFERRED_VENUE = '全部';
+
+        if (saved) {
+            // 如果有保存的配置，完全使用保存的配置（包括日期）
+            const config = { ...DEFAULT_CONFIG, ...saved };
+            // 根据当前配置更新YYLX
+            config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
+            // 确保场馆配置有效
+            if (!shouldShowVenueSelection(config.SPORT, config.CAMPUS)) {
+                config.PREFERRED_VENUE = '全部';
+            }
+            return config;
+        } else {
+            // 只有在没有保存配置时，才使用默认配置（包括明天的日期）
+            const config = { ...DEFAULT_CONFIG };
+            config.TARGET_DATE = getTomorrowDate();
+            config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
+            return config;
         }
-        return config;
     }
 
     // ==================== 定时任务管理器 ====================
@@ -1507,13 +1516,34 @@
         if (Device.isMobile) MobileOptimization.init();
         SmartRetry.reset();
 
-        CONFIG.TARGET_DATE = getTomorrowDate();
+        // 不再强制重置日期，使用 loadConfig() 加载的配置日期
+        // CONFIG.TARGET_DATE = getTomorrowDate(); // 已移除
 
         floatingButton = createFloatingButton();
         controlPanel = createControlPanel();
         updateDisplayConfig();
 
-        document.getElementById('target-date').value = getTomorrowDate();
+        // 使用配置中的日期更新 UI
+        document.getElementById('target-date').value = CONFIG.TARGET_DATE;
+
+        // 检查是否是预约前刷新
+        const needRefresh = Storage.get('needRefresh', false);
+        if (needRefresh) {
+            Storage.remove('needRefresh');
+
+            // 格式化日期显示
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}/${month}/${day}`;
+            };
+
+            addLog('✅ 页面已刷新，配置已恢复', 'success');
+            addLog(`📅 预约日期: ${formatDate(CONFIG.TARGET_DATE)}`, 'info');
+            addLog(`🏟️ ${CONFIG.SPORT} | ${CONFIG.CAMPUS}`, 'info');
+        }
 
         // 恢复定时任务
         if (ScheduledTask.restore()) {
@@ -1526,6 +1556,11 @@
 
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) {
+            // 如果有活动的定时任务，保持用户设置的日期不变
+            if (ScheduledTask.getRemaining()) {
+                return;
+            }
+
             const newDate = getTomorrowDate();
             if (CONFIG.TARGET_DATE !== newDate) {
                 CONFIG.TARGET_DATE = newDate;
