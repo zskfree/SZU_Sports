@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.1.8
+// @version      1.1.9
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.1.8',
+        version: '1.1.9',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -586,6 +586,21 @@
                 Storage.remove('scheduledTime');
             }
             return false;
+        },
+
+        checkRefresh() {
+            // 检查是否需要在30秒前刷新页面以保持会话活跃
+            const remaining = this.getRemaining();
+            if (remaining !== null && remaining <= 30000 && remaining > 29000) {
+                // 标记需要刷新并执行刷新
+                Storage.set('needRefresh', true);
+                addLog('🔄 即将刷新页面以保持会话活跃...', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+                return true;
+            }
+            return false;
         }
     };
 
@@ -686,7 +701,7 @@
 
         panel.innerHTML = `
     <div style="margin-bottom:15px;text-align:center;position:relative;">
-        <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.8</h3>
+        <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.9</h3>
         <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
         <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
     </div>
@@ -969,8 +984,22 @@
                 return false;
             }
 
+            // 检查是否需要刷新页面
+            if (ScheduledTask.checkRefresh()) {
+                return false; // 刷新中，停止更新
+            }
+
             const formatted = ScheduledTask.formatRemaining();
-            updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+            const remainingSeconds = Math.floor(remaining / 1000);
+
+            // 根据剩余时间显示不同的提示
+            if (remainingSeconds <= 60 && remainingSeconds > 30) {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (将在30秒时刷新页面)`);
+            } else if (remainingSeconds <= 30) {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (即将开始抢票)`);
+            } else {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+            }
             return true;
         };
 
@@ -1515,10 +1544,21 @@
 
         document.getElementById('target-date').value = getTomorrowDate();
 
+        // 检查是否是预约前刷新恢复的状态
+        const needRefresh = Storage.get('needRefresh', false);
+        if (needRefresh) {
+            Storage.remove('needRefresh');
+            addLog('✅ 页面已刷新，会话保持活跃', 'success');
+        }
+
         // 恢复定时任务
         if (ScheduledTask.restore()) {
             startCountdown();
-            addLog(`🔄 已恢复定时任务`, 'success');
+            if (needRefresh) {
+                addLog(`🔄 定时任务已恢复，继续倒计时`, 'success');
+            } else {
+                addLog(`🔄 已恢复定时任务`, 'success');
+            }
         }
 
         addLog(`🎮 抢票助手已就绪 (${Device.isIPad ? 'iPad' : (Device.isMobile ? '移动端' : '桌面端')})`, 'success');
