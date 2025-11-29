@@ -505,23 +505,17 @@
     function loadConfig() {
         const saved = Storage.get('bookingConfig', null);
 
-        if (saved) {
-            // 如果有保存的配置，完全使用保存的配置（包括日期）
-            const config = { ...DEFAULT_CONFIG, ...saved };
-            // 根据当前配置更新YYLX
-            config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
-            // 确保场馆配置有效
-            if (!shouldShowVenueSelection(config.SPORT, config.CAMPUS)) {
-                config.PREFERRED_VENUE = '全部';
-            }
-            return config;
-        } else {
-            // 只有在没有保存配置时，才使用默认配置（包括明天的日期）
-            const config = { ...DEFAULT_CONFIG };
-            config.TARGET_DATE = getTomorrowDate();
-            config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
-            return config;
+        // 如果有保存的配置，使用保存的配置（包括日期）
+        // 只有在没有保存配置时，才使用默认日期（明天）
+        const config = saved ? { ...DEFAULT_CONFIG, ...saved } : { ...DEFAULT_CONFIG, TARGET_DATE: getTomorrowDate() };
+
+        // 根据当前配置更新YYLX
+        config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
+        // 确保场馆配置有效
+        if (!shouldShowVenueSelection(config.SPORT, config.CAMPUS)) {
+            config.PREFERRED_VENUE = '全部';
         }
+        return config;
     }
 
     // ==================== 定时任务管理器 ====================
@@ -1515,9 +1509,6 @@
 
         if (Device.isMobile) MobileOptimization.init();
         SmartRetry.reset();
-
-        // 不再强制重置日期，使用 loadConfig() 加载的配置日期
-        // CONFIG.TARGET_DATE = getTomorrowDate(); // 已移除
 
         floatingButton = createFloatingButton();
         controlPanel = createControlPanel();
