@@ -591,9 +591,10 @@
         checkRefresh() {
             // 检查是否需要在30秒前刷新页面以保持会话活跃
             const remaining = this.getRemaining();
-            if (remaining !== null && remaining <= 30000 && remaining > 29000) {
-                // 标记需要刷新并执行刷新
-                Storage.set('needRefresh', true);
+            // 使用2秒的窗口（28-30秒）确保能可靠触发刷新
+            if (remaining !== null && remaining <= 30000 && remaining > 28000) {
+                // 标记需要刷新并执行刷新，记录刷新时间戳
+                Storage.set('needRefresh', { triggered: true, timestamp: Date.now() });
                 addLog('🔄 即将刷新页面以保持会话活跃...', 'info');
                 setTimeout(() => {
                     window.location.reload();
@@ -986,7 +987,7 @@
 
             // 检查是否需要刷新页面
             if (ScheduledTask.checkRefresh()) {
-                return false; // 刷新中，停止更新
+                return false; // 即将刷新，停止倒计时更新
             }
 
             const formatted = ScheduledTask.formatRemaining();
@@ -1545,16 +1546,24 @@
         document.getElementById('target-date').value = getTomorrowDate();
 
         // 检查是否是预约前刷新恢复的状态
-        const needRefresh = Storage.get('needRefresh', false);
-        if (needRefresh) {
+        const refreshData = Storage.get('needRefresh', null);
+        // 检查刷新标记是否有效（5分钟内触发的刷新）
+        const isValidRefresh = refreshData && 
+            refreshData.triggered && 
+            refreshData.timestamp && 
+            (Date.now() - refreshData.timestamp < 5 * 60 * 1000);
+        
+        if (refreshData) {
             Storage.remove('needRefresh');
-            addLog('✅ 页面已刷新，会话保持活跃', 'success');
+            if (isValidRefresh) {
+                addLog('✅ 页面已刷新，会话保持活跃', 'success');
+            }
         }
 
         // 恢复定时任务
         if (ScheduledTask.restore()) {
             startCountdown();
-            if (needRefresh) {
+            if (isValidRefresh) {
                 addLog(`🔄 定时任务已恢复，继续倒计时`, 'success');
             } else {
                 addLog(`🔄 已恢复定时任务`, 'success');
