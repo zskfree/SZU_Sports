@@ -1629,28 +1629,6 @@
         return `${year}/${month}/${day}`;
     }
 
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            // 检查是否是刷新恢复状态
-            const refreshData = Storage.get('needRefresh', null);
-            const isValidRefresh = refreshData &&
-                refreshData.triggered &&
-                refreshData.timestamp &&
-                (Date.now() - refreshData.timestamp < 5 * 60 * 1000);
-
-            // 只在非刷新恢复状态下才自动更新日期为明天
-            if (!isValidRefresh) {
-                const newDate = getTomorrowDate();
-                if (CONFIG.TARGET_DATE !== newDate) {
-                    CONFIG.TARGET_DATE = newDate;
-                    document.getElementById('target-date').value = newDate;
-                    updateDisplayConfig();
-                    Storage.set('bookingConfig', CONFIG);
-                    addLog(`📅 日期已更新: ${formatDateDisplay(newDate)}`, 'info');
-                }
-            }
-        }
-    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
