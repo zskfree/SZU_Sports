@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.1.8
+// @version      1.1.9
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.1.8',
+        version: '1.1.9',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -505,7 +505,12 @@
     function loadConfig() {
         const saved = Storage.get('bookingConfig', null);
         const config = saved ? { ...DEFAULT_CONFIG, ...saved } : DEFAULT_CONFIG;
-        config.TARGET_DATE = getTomorrowDate();
+
+        // 只在没有保存配置时才设置为明天
+        if (!saved) {
+            config.TARGET_DATE = getTomorrowDate();
+        }
+
         // 根据当前配置更新YYLX
         config.YYLX = getYYLX(config.SPORT, config.CAMPUS);
         // 确保场馆配置有效
@@ -584,6 +589,22 @@
             } else if (savedTime) {
                 // 清理过期的定时任务
                 Storage.remove('scheduledTime');
+            }
+            return false;
+        },
+
+        checkRefresh() {
+            // 检查是否需要在30秒前刷新页面以保持会话活跃
+            const remaining = this.getRemaining();
+            // 使用2秒的窗口（28-30秒）确保能可靠触发刷新
+            if (remaining !== null && remaining <= 30000 && remaining > 28000) {
+                // 标记需要刷新并执行刷新，记录刷新时间戳
+                Storage.set('needRefresh', { triggered: true, timestamp: Date.now() });
+                addLog('🔄 即将刷新页面以保持会话活跃...', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+                return true;
             }
             return false;
         }
@@ -685,106 +706,106 @@
         };
 
         panel.innerHTML = `
-    <div style="margin-bottom:15px;text-align:center;position:relative;">
-        <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.8</h3>
-        <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
-        <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
-    </div>
-
-    <div id="config-area" style="background:rgba(255,255,255,0.1);padding:15px;border-radius:8px;margin-bottom:15px;display:block;">
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">👤 学号/工号:</label>
-            <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="${Styles.input}">
+        <div style="margin-bottom:15px;text-align:center;position:relative;">
+            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.1.9</h3>
+            <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
+            <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
         </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📝 姓名:</label>
-            <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="${Styles.input}">
-        </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📅 预约日期:</label>
-            <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="${Styles.input}">
-        </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 运动项目:</label>
-            <select id="sport-type" style="${Styles.input}">
-                ${Object.keys(SPORT_CODES).map(s => `<option value="${s}" ${s === CONFIG.SPORT ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-        </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏫 校区:</label>
-            <select id="campus" style="${Styles.input}">
-                ${Object.keys(CAMPUS_CODES).map(c => `<option value="${c}" ${c === CONFIG.CAMPUS ? 'selected' : ''}>${c}</option>`).join('')}
-            </select>
-        </div>
-        <div id="venue-selection" style="margin-bottom:12px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 优先场馆:</label>
-            <select id="preferred-venue" style="${Styles.input}">
-                ${getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt =>
+    
+        <div id="config-area" style="background:rgba(255,255,255,0.1);padding:15px;border-radius:8px;margin-bottom:15px;display:none;">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">👤 学号/工号:</label>
+                <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="${Styles.input}">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📝 姓名:</label>
+                <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="${Styles.input}">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📅 预约日期:</label>
+                <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="${Styles.input}">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 运动项目:</label>
+                <select id="sport-type" style="${Styles.input}">
+                    ${Object.keys(SPORT_CODES).map(s => `<option value="${s}" ${s === CONFIG.SPORT ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏫 校区:</label>
+                <select id="campus" style="${Styles.input}">
+                    ${Object.keys(CAMPUS_CODES).map(c => `<option value="${c}" ${c === CONFIG.CAMPUS ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+            </div>
+            <div id="venue-selection" style="margin-bottom:12px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 优先场馆:</label>
+                <select id="preferred-venue" style="${Styles.input}">
+                    ${getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt =>
             `<option value="${opt.value}" ${CONFIG.PREFERRED_VENUE === opt.value ? 'selected' : ''}>${opt.label}</option>`
         ).join('')}
-            </select>
-        </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:8px;">⏰ 优先时间段:</label>
-            <div id="time-slots-container" style="background:rgba(255,255,255,0.1);border-radius:4px;padding:8px;display:grid;grid-template-columns:repeat(${Device.isMobile ? '2' : '2'},1fr);gap:${Device.isMobile ? '6px' : '4px'};">
-                ${TIME_SLOTS.map(slot => `<label style="display:flex;align-items:center;font-size:${Device.isMobile ? '13px' : '11px'};cursor:pointer;padding:${Device.isMobile ? '4px' : '2px'};"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:5px;transform:${Device.isMobile ? 'scale(1.2)' : 'scale(1)'};flex-shrink:0;"><span style="white-space:nowrap;">${slot}</span></label>`).join('')}
+                </select>
             </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-            <div>
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏱️ 查询间隔(秒):</label>
-                <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="${Styles.input}">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:8px;">⏰ 优先时间段:</label>
+                <div id="time-slots-container" style="background:rgba(255,255,255,0.1);border-radius:4px;padding:8px;display:grid;grid-template-columns:repeat(${Device.isMobile ? '2' : '2'},1fr);gap:${Device.isMobile ? '6px' : '4px'};">
+                    ${TIME_SLOTS.map(slot => `<label style="display:flex;align-items:center;font-size:${Device.isMobile ? '13px' : '11px'};cursor:pointer;padding:${Device.isMobile ? '4px' : '2px'};"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:5px;transform:${Device.isMobile ? 'scale(1.2)' : 'scale(1)'};flex-shrink:0;"><span style="white-space:nowrap;">${slot}</span></label>`).join('')}
+                </div>
             </div>
-            <div>
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🔄 最大重试:</label>
-                <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="${Styles.input}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                <div>
+                    <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏱️ 查询间隔(秒):</label>
+                    <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="${Styles.input}">
+                </div>
+                <div>
+                    <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🔄 最大重试:</label>
+                    <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="${Styles.input}">
+                </div>
             </div>
-        </div>
-        <div style="margin-bottom:12px;">
-            <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏰ 请求超时(秒):</label>
-            <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${Styles.input}">
-        </div>
-        <button id="save-config" style="${Styles.button}background:linear-gradient(45deg,#4caf50,#45a049);color:white;font-size:${Device.isMobile ? '16px' : '14px'};margin-bottom:10px;">💾 保存配置</button>
-    </div>
-
-    <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:8px;margin-bottom:15px;">
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span></div>
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> | 🏟️ <span id="display-sport">${CONFIG.SPORT}</span> | 🏫 <span id="display-campus">${CONFIG.CAMPUS}</span></div>
-        <div id="venue-display" style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE}</span></div>
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span></div>
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};">⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s | 重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> | 超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s</div>
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-top:5px;">🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span></div>
-    </div>
-
-    <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">
-        <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:8px;font-weight:bold;">⏰ 定时抢票</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div>
-                <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">日期:</label>
-                <input id="scheduled-date" type="date" value="${getTodayDate()}" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏰ 请求超时(秒):</label>
+                <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${Styles.input}">
             </div>
-            <div>
-                <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">时间:</label>
-                <input id="scheduled-time" type="time" value="12:30" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+            <button id="save-config" style="${Styles.button}background:linear-gradient(45deg,#4caf50,#45a049);color:white;font-size:${Device.isMobile ? '16px' : '14px'};margin-bottom:10px;">💾 保存配置</button>
+        </div>
+    
+        <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:8px;margin-bottom:15px;">
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span></div>
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> | 🏟️ <span id="display-sport">${CONFIG.SPORT}</span> | 🏫 <span id="display-campus">${CONFIG.CAMPUS}</span></div>
+            <div id="venue-display" style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE}</span></div>
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span></div>
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};">⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s | 重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> | 超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s</div>
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-top:5px;">🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span></div>
+        </div>
+    
+        <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">
+            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:8px;font-weight:bold;">⏰ 定时抢票</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div>
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">日期:</label>
+                    <input id="scheduled-date" type="date" value="${getTodayDate()}" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+                </div>
+                <div>
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">时间:</label>
+                    <input id="scheduled-time" type="time" value="12:30" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+                </div>
             </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button id="set-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#ff9800,#f57c00);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">⏰ 设置定时</button>
+                <button id="cancel-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#9e9e9e,#757575);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">❌ 取消定时</button>
+            </div>
+            <div id="countdown-display" style="font-size:${Device.isMobile ? '14px' : '12px'};margin-top:8px;text-align:center;color:#ffd700;font-weight:bold;">未设置定时任务</div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <button id="set-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#ff9800,#f57c00);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">⏰ 设置定时</button>
-            <button id="cancel-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#9e9e9e,#757575);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">❌ 取消定时</button>
+    
+        <div style="margin-bottom:15px;">
+            <button id="start-btn" style="${Styles.button}background:linear-gradient(45deg,#ff6b6b,#ee5a52);color:white;">🚀 开始抢票</button>
         </div>
-        <div id="countdown-display" style="font-size:${Device.isMobile ? '14px' : '12px'};margin-top:8px;text-align:center;color:#ffd700;font-weight:bold;">未设置定时任务</div>
-    </div>
-
-    <div style="margin-bottom:15px;">
-        <button id="start-btn" style="${Styles.button}background:linear-gradient(45deg,#ff6b6b,#ee5a52);color:white;">🚀 开始抢票</button>
-    </div>
-
-    <div id="status-area" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;font-size:${Device.isMobile ? '14px' : '12px'};max-height:${Device.isMobile ? '250px' : '200px'};overflow-y:auto;border:1px solid rgba(255,255,255,0.1);">
-        <div style="color:#ffd700;">🔧 等待开始...</div>
-    </div>
-
-    <div style="margin-top:15px;text-align:center;font-size:${Device.isMobile ? '13px' : '11px'};opacity:0.8;">${Device.isMobile ? '📱 触摸优化版本' : '⚡ 快捷键: Ctrl+Shift+S 开始/停止'}</div>
-    `;
+    
+        <div id="status-area" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;font-size:${Device.isMobile ? '14px' : '12px'};max-height:${Device.isMobile ? '250px' : '200px'};overflow-y:auto;border:1px solid rgba(255,255,255,0.1);">
+            <div style="color:#ffd700;">🔧 等待开始...</div>
+        </div>
+    
+        <div style="margin-top:15px;text-align:center;font-size:${Device.isMobile ? '13px' : '11px'};opacity:0.8;">${Device.isMobile ? '📱 触摸优化版本' : '⚡ 快捷键: Ctrl+Shift+S 开始/停止'}</div>
+        `;
 
         document.body.appendChild(panel);
 
@@ -893,10 +914,25 @@
 
         Interaction.bind(panel.querySelector('#start-btn'), () => {
             if (isRunning) {
+                // 停止抢票
+                addLog(`⏹️ 正在停止抢票...`, 'info');
                 stopBooking();
             } else {
+                // 开始抢票前先更新配置
                 updateConfigFromUI();
-                if (validateConfig()) startBooking();
+
+                // 验证配置
+                if (!validateConfig()) {
+                    addLog(`❌ 配置验证失败，请检查配置`, 'error');
+                    return;
+                }
+
+                // 二次确认（可选）
+                const confirmMsg = `确认开始抢票？\n日期: ${formatDateDisplay(CONFIG.TARGET_DATE)}\n项目: ${CONFIG.SPORT}\n校区: ${CONFIG.CAMPUS}\n时段: ${CONFIG.PREFERRED_TIMES.join(', ')}`;
+
+                if (Device.isMobile || confirm(confirmMsg)) {
+                    startBooking();
+                }
             }
         });
 
@@ -969,8 +1005,22 @@
                 return false;
             }
 
+            // 检查是否需要刷新页面
+            if (ScheduledTask.checkRefresh()) {
+                return false; // 即将刷新，停止倒计时更新
+            }
+
             const formatted = ScheduledTask.formatRemaining();
-            updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+            const remainingSeconds = Math.floor(remaining / 1000);
+
+            // 根据剩余时间显示不同的提示
+            if (remainingSeconds <= 60 && remainingSeconds > 30) {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (将在30秒时刷新页面)`);
+            } else if (remainingSeconds <= 30) {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (即将开始抢票)`);
+            } else {
+                updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+            }
             return true;
         };
 
@@ -1353,20 +1403,29 @@
 
     // ==================== 主流程 ====================
     async function startBooking() {
-        if (isRunning) return;
+        if (isRunning) {
+            addLog(`⚠️ 正在抢票中，请勿重复点击`, 'warning');
+            return;
+        }
 
+        // 重置状态 - 关键修复
         isRunning = true;
         retryCount = 0;
+        successfulBookings = []; // 清空之前的预约记录
         startTime = new Date();
         const max = getMaxBookings();
 
         SmartRetry.reset();
+        RequestThrottler.reset(); // 重置请求频率控制器
 
         const btn = document.getElementById('start-btn');
         if (btn) {
             btn.textContent = '⏹️ 停止抢票';
             btn.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
         }
+
+        // 更新进度显示
+        updateProgress();
 
         // 格式化日期显示
         const formatDate = (dateStr) => {
@@ -1379,11 +1438,16 @@
 
         addLog(`🚀 开始抢票！`, 'success');
         addLog(`📊 ${CONFIG.SPORT} | ${CONFIG.CAMPUS} | ${formatDate(CONFIG.TARGET_DATE)}`, 'info');
+        addLog(`⏰ 目标时段: ${CONFIG.PREFERRED_TIMES.join(', ')}`, 'info');
+
+        if (shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) && CONFIG.PREFERRED_VENUE !== "全部") {
+            addLog(`🏟️ 优先场馆: ${CONFIG.PREFERRED_VENUE}`, 'info');
+        }
 
         try {
             while (isRunning && retryCount < CONFIG.MAX_RETRY_TIMES) {
                 if (successfulBookings.length >= max) {
-                    addLog(`🎊 成功预约 ${max} 个时段`, 'success');
+                    addLog(`🎊 成功预约 ${max} 个时段，已达上限`, 'success');
                     break;
                 }
 
@@ -1420,6 +1484,9 @@
                                 if (result === 'already_booked') {
                                     continue;
                                 }
+                                if (result === true) {
+                                    addLog(`✅ ${time} 预约成功 (${successfulBookings.length}/${max})`, 'success');
+                                }
 
                                 await new Promise(r => setTimeout(r, 500));
                             }
@@ -1427,13 +1494,13 @@
                     } else {
                         SmartRetry.onFailure();
                         if (retryCount <= 3 || retryCount % 20 === 0) {
-                            addLog(`🔍 暂无可预约场地`, 'warning');
+                            addLog(`🔍 暂无可预约场地，继续查询...`, 'warning');
                         }
                     }
                 } catch (error) {
                     SmartRetry.onFailure();
                     if (NetworkErrorHandler.categorize(error) === 'auth_error') {
-                        addLog(`🔐 认证错误`, 'error');
+                        addLog(`🔐 认证错误，请重新登录`, 'error');
                         break;
                     }
                 }
@@ -1450,6 +1517,7 @@
 
     function stopBooking() {
         if (!isRunning) return;
+
         isRunning = false;
 
         if (Device.isMobile) MobileOptimization.cleanup();
@@ -1467,11 +1535,12 @@
             addLog(`🎉 成功预约 ${realBookings.length}/${max} 个时段`, 'success');
             realBookings.forEach((b, i) => addLog(`${i + 1}. ${b.slotName} (${b.dhid})`, 'success'));
         } else {
-            addLog(`😢 未成功预约`, 'warning');
+            addLog(`😢 未成功预约任何场地`, 'warning');
         }
 
         const elapsed = startTime ? Math.round((new Date() - startTime) / 1000) : 0;
-        addLog(`📊 运行${elapsed}秒，查询${retryCount}次`, 'info');
+        addLog(`📊 运行 ${elapsed} 秒，查询 ${retryCount} 次`, 'info');
+        addLog(`✅ 抢票已停止，可重新配置并开始`, 'info');
     }
 
     // ==================== 初始化 ====================
@@ -1493,6 +1562,23 @@
 
         // 设置默认定时时间为当前时间的下一个小时
         const defaultDateTime = getTodayDateTime();
+
+        if (Device.isMobile) MobileOptimization.init();
+        SmartRetry.reset();
+
+        // 删除这行，不要自动更新日期
+        // CONFIG.TARGET_DATE = getTomorrowDate();
+
+        floatingButton = createFloatingButton();
+        controlPanel = createControlPanel();
+        updateDisplayConfig();
+
+        // 删除这行，使用配置中的日期
+        // document.getElementById('target-date').value = getTomorrowDate();
+
+        // 确保UI显示当前配置的日期
+        document.getElementById('target-date').value = CONFIG.TARGET_DATE;
+
         const scheduledDateInput = document.getElementById('scheduled-date');
         const scheduledTimeInput = document.getElementById('scheduled-time');
 
@@ -1504,45 +1590,64 @@
             scheduledTimeInput.value = `${String(nextHour.getHours()).padStart(2, '0')}:00`;
         }
 
-        if (Device.isMobile) MobileOptimization.init();
-        SmartRetry.reset();
+        // 检查是否是预约前刷新恢复的状态
+        const refreshData = Storage.get('needRefresh', null);
+        // 检查刷新标记是否有效（5分钟内触发的刷新）
+        const isValidRefresh = refreshData &&
+            refreshData.triggered &&
+            refreshData.timestamp &&
+            (Date.now() - refreshData.timestamp < 5 * 60 * 1000);
 
-        CONFIG.TARGET_DATE = getTomorrowDate();
-
-        floatingButton = createFloatingButton();
-        controlPanel = createControlPanel();
-        updateDisplayConfig();
-
-        document.getElementById('target-date').value = getTomorrowDate();
+        if (refreshData) {
+            Storage.remove('needRefresh');
+            if (isValidRefresh) {
+                addLog('✅ 页面已刷新，会话保持活跃', 'success');
+                addLog(`📅 预约日期: ${formatDateDisplay(CONFIG.TARGET_DATE)}`, 'info');
+                addLog(`🏟️ ${CONFIG.SPORT} | ${CONFIG.CAMPUS}`, 'info');
+            }
+        }
 
         // 恢复定时任务
         if (ScheduledTask.restore()) {
             startCountdown();
-            addLog(`🔄 已恢复定时任务`, 'success');
+            if (isValidRefresh) {
+                addLog(`🔄 定时任务已恢复，继续倒计时`, 'success');
+            } else {
+                addLog(`🔄 已恢复定时任务`, 'success');
+            }
         }
 
         addLog(`🎮 抢票助手已就绪 (${Device.isIPad ? 'iPad' : (Device.isMobile ? '移动端' : '桌面端')})`, 'success');
     }
 
+    // 添加一个格式化日期显示的辅助函数
+    function formatDateDisplay(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+    }
+
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) {
-            const newDate = getTomorrowDate();
-            if (CONFIG.TARGET_DATE !== newDate) {
-                CONFIG.TARGET_DATE = newDate;
-                document.getElementById('target-date').value = newDate;
-                updateDisplayConfig();
-                Storage.set('bookingConfig', CONFIG);
+            // 检查是否是刷新恢复状态
+            const refreshData = Storage.get('needRefresh', null);
+            const isValidRefresh = refreshData &&
+                refreshData.triggered &&
+                refreshData.timestamp &&
+                (Date.now() - refreshData.timestamp < 5 * 60 * 1000);
 
-                // 格式化日期显示
-                const formatDate = (dateStr) => {
-                    const date = new Date(dateStr);
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    return `${year}/${month}/${day}`;
-                };
-
-                addLog(`📅 日期已更新: ${formatDate(newDate)}`, 'info');
+            // 只在非刷新恢复状态下才自动更新日期为明天
+            if (!isValidRefresh) {
+                const newDate = getTomorrowDate();
+                if (CONFIG.TARGET_DATE !== newDate) {
+                    CONFIG.TARGET_DATE = newDate;
+                    document.getElementById('target-date').value = newDate;
+                    updateDisplayConfig();
+                    Storage.set('bookingConfig', CONFIG);
+                    addLog(`📅 日期已更新: ${formatDateDisplay(newDate)}`, 'info');
+                }
             }
         }
     });
