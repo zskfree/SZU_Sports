@@ -1105,8 +1105,8 @@
         const errors = [];
 
         if (!CONFIG.USER_INFO.YYRGH || !CONFIG.USER_INFO.YYRXM) errors.push('请填写用户信息');
-        if (!/^\d{8,12}$/.test(CONFIG.USER_INFO.YYRGH)) errors.push('学号格式不正确');
-        if (!/^[\u4e00-\u9fa5]{2,10}$/.test(CONFIG.USER_INFO.YYRXM)) errors.push('姓名格式不正确');
+        if (!/^\d{3,12}$/.test(CONFIG.USER_INFO.YYRGH)) errors.push('学号格式不正确');
+        if (!/^[\u4e00-\u9fa5]{2,20}$/.test(CONFIG.USER_INFO.YYRXM)) errors.push('姓名格式不正确');
         if (!CONFIG.TARGET_DATE) errors.push('请选择日期');
         if (!CONFIG.PREFERRED_TIMES.length) errors.push('请选择时间段');
 
