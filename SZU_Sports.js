@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @version      1.2.1
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
