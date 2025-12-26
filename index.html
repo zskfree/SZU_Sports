@@ -3,679 +3,390 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SZU Sports | 沉浸式抢票助手</title>
+    <title>SZU Sports | ⚡ 极限抢票助手</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="深圳大学体育场馆自动抢票脚本，支持羽毛球、篮球等多项目智能预约">
-
-    <!-- 引入 Inter 字体以增强数字感 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
-
     <style>
-        /* =========================================
-           1. CSS 变量定义 - 深色玻璃拟态核心库
-           ========================================= */
+        /* 
+        ================================================================
+        MODERN GROTESQUE & ACID GRAPHICS SPECIFICATION V1.0
+        ================================================================
+        */
+
         :root {
-            /* 核心色板 */
-            --bg-deep: #050505;
-            --accent-cyan: #64ffda;
-            /* 科技青 - 主操作 */
-            --accent-purple: #bd93f9;
-            /* 霓虹紫 - 次级操作 */
-            --accent-gold: #ffb86c;
-            /* 警示/高亮 */
-
-            /* 玻璃材质 */
-            --glass-surface: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.15);
-            --blur-strength: 20px;
-
-            /* 文字层级 */
-            --text-primary: rgba(255, 255, 255, 0.92);
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --text-tertiary: rgba(255, 255, 255, 0.35);
-
-            /* 阴影与深度 */
-            --shadow-cinematic: 0 40px 80px -12px rgba(0, 0, 0, 0.7);
-            --shadow-glow: 0 0 20px rgba(100, 255, 218, 0.15);
-
-            /* 布局 */
-            --container-width: 680px;
-            --spacing-base: 1.5rem;
+            --bg-pure: #050505;
+            --text-main: #eaeaea;
+            --acid-green: #ccff00;
+            --acid-purple: #7000ff;
+            --acid-red: #ff0033;
+            --border-thick: 3px;
+            --shadow-offset: 6px;
         }
 
-        /* =========================================
-           2. 全局基础样式
-           ========================================= */
+        /* RESET & GEOMETRY */
         * {
             box-sizing: border-box;
-            outline: none;
+            border-radius: 0 !important;
+            margin: 0;
+            padding: 0;
+            cursor: crosshair;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-            background-color: var(--bg-deep);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            line-height: 1.8;
-            -webkit-font-smoothing: antialiased;
+            background-color: var(--bg-pure);
+            color: var(--text-main);
+            font-family: "Monaco", "PingFang SC", "Microsoft YaHei", monospace;
+            line-height: 1.5;
             overflow-x: hidden;
+            -webkit-font-smoothing: none;
         }
 
-        /* 背景层构建 */
-        .cinematic-bg {
+        /* NOISE TEXTURE LAYER */
+        body::before {
+            content: "";
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2;
-            /* 使用一张深色抽象/建筑类图片 */
-            background-image: url('https://images.unsplash.com/photo-1516723224785-52467b7381ae?q=80&w=2578&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(80%) brightness(0.6) contrast(1.1);
+            background: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.08"/></svg>');
+            pointer-events: none;
+            z-index: 9999;
         }
 
-        .cinematic-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            /* 双层渐变营造暗角和深度 */
-            background:
-                radial-gradient(circle at 50% 0%, rgba(30, 30, 40, 0.4) 0%, rgba(5, 5, 5, 1) 90%),
-                linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
-        }
-
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-
-        /* =========================================
-           3. 核心容器与排版
-           ========================================= */
+        /* LAYOUT CONTAINERS */
         .container {
-            max-width: var(--container-width);
-            margin: 60px auto;
-
-            /* 玻璃拟态核心属性 */
-            background: var(--glass-surface);
-            backdrop-filter: blur(var(--blur-strength));
-            -webkit-backdrop-filter: blur(var(--blur-strength));
-            border: 1px solid var(--glass-border);
-            border-top: 1px solid var(--glass-highlight);
-            /* 顶部高光 */
-
-            border-radius: 24px;
-            box-shadow: var(--shadow-cinematic);
-            padding: 40px;
-
-            /* 动画 */
-            opacity: 0;
-            animation: fadeInGlass 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            border: var(--border-thick) solid var(--text-main);
+            background: var(--bg-pure);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--acid-purple);
+            position: relative;
+            z-index: 10;
         }
 
-        @keyframes fadeInGlass {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
+        /* TYPOGRAPHY */
         h1 {
-            font-size: 2rem;
-            font-weight: 200;
-            /* 极细字重 */
-            letter-spacing: 2px;
-            margin: 0 0 10px 0;
-            background: linear-gradient(120deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
-            -webkit-background-clip: text;
-            background-clip: text; /* 添加此行以消除警告 */
-            -webkit-text-fill-color: transparent;
-            text-align: center;
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 0.9;
+            text-transform: uppercase;
+            color: var(--acid-green);
+            -webkit-text-stroke: 1px #000;
+            text-shadow: 4px 4px 0 #000, 8px 8px 0 var(--acid-purple);
+            margin-bottom: 20px;
+            word-break: break-all;
         }
 
         .version {
-            display: block;
-            text-align: center;
-            font-family: 'Monaco', monospace;
-            font-size: 0.75rem;
-            color: var(--accent-cyan);
-            opacity: 0.8;
-            letter-spacing: 1px;
+            display: inline-block;
+            background: var(--acid-red);
+            color: #000;
+            padding: 2px 8px;
+            font-weight: bold;
             margin-bottom: 30px;
         }
 
         .desc {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-            margin-bottom: 40px;
-            font-weight: 300;
+            font-size: 1.2rem;
+            border-left: 8px solid var(--acid-green);
+            padding-left: 15px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .highlight {
-            color: var(--text-primary);
-            font-weight: 500;
-            border-bottom: 1px solid var(--accent-cyan);
-            padding-bottom: 1px;
+            color: #000;
+            background: var(--acid-green);
+            padding: 0 4px;
+            font-weight: bold;
         }
 
-        /* =========================================
-           4. 组件：按钮 (Cinematic Buttons)
-           ========================================= */
+        /* COMPONENTS: INTERACTION */
         .btn-group {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 40px 0;
         }
 
         .btn-link,
         .btn-secondary-link {
-            flex: 1;
-            min-width: 200px;
-            padding: 18px 0;
-            text-align: center;
             text-decoration: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            padding: 15px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+            border: var(--border-thick) solid var(--text-main);
+            transition: none;
+            display: block;
         }
 
-        /* 主按钮 - 霓虹青 */
         .btn-link {
-            background: rgba(100, 255, 218, 0.05);
-            border: 1px solid rgba(100, 255, 218, 0.3);
-            color: var(--accent-cyan) !important;
-            box-shadow: 0 0 0 transparent;
+            background: var(--acid-green);
+            color: #000;
+            box-shadow: 6px 6px 0 var(--acid-red);
         }
 
         .btn-link:hover {
-            background: rgba(100, 255, 218, 0.1);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 30px rgba(100, 255, 218, 0.15);
-            transform: translateY(-2px);
-            color: #fff !important;
+            background: #000;
+            color: var(--acid-green);
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--acid-red);
         }
 
-        /* 次级按钮 - 极简白 */
         .btn-secondary-link {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
-            color: var(--text-secondary) !important;
+            background: #000;
+            color: var(--text-main);
+            box-shadow: 6px 6px 0 var(--acid-green);
         }
 
         .btn-secondary-link:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.3);
-            color: #fff !important;
-            transform: translateY(-2px);
+            background: var(--text-main);
+            color: #000;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--acid-green);
         }
 
-        /* =========================================
-           5. 组件：卡片与列表 (Cards & Lists)
-           ========================================= */
-        /* 通用卡片样式 */
-        .feature-list,
-        .tech-specs,
-        .usage,
-        .url-display {
-            background: rgba(0, 0, 0, 0.2);
-            /* 比背景更深 */
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .feature-list:hover,
-        .tech-specs:hover,
-        .url-display:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* 标题统一 */
+        /* INFORMATION BLOCKS */
         .card-title {
-            font-size: 0.9rem;
+            background: var(--text-main);
+            color: #000;
+            display: inline-block;
+            padding: 2px 12px;
+            font-weight: 900;
+            margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--text-tertiary);
-            margin-bottom: 20px;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
-        .card-title::before,
-        .card-title::after {
-            content: '';
-            display: block;
-            height: 1px;
-            width: 30px;
-            background: var(--text-tertiary);
-            opacity: 0.3;
+        .url-display,
+        .feature-list,
+        .usage,
+        .tech-specs {
+            border: 2px solid var(--text-main);
+            padding: 20px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        /* 链接展示区 - 模仿终端 */
         .url-link {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px dashed rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            margin: 12px 0;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .url-link:hover {
-            background: rgba(0, 0, 0, 0.5);
-            border-color: var(--accent-cyan);
-        }
-
-        .url-text {
-            font-family: 'Consolas', monospace;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
+            background: #111;
+            border: 1px solid var(--text-main);
             padding: 15px;
+            margin-bottom: 10px;
             word-break: break-all;
         }
 
-        .url-link:hover .url-text {
-            color: var(--accent-cyan);
+        .url-link:hover {
+            border-color: var(--acid-green);
+            background: var(--acid-purple);
         }
 
         .url-label {
-            font-size: 0.7rem;
-            text-align: right;
-            padding: 0 15px 10px;
-            color: var(--text-tertiary);
-        }
-
-        /* 功能列表 - 移除圆点，使用图标 */
-        .feature-list ul,
-        .usage-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 15px;
-        }
-
-        .feature-list li {
-            padding: 10px 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .feature-list li strong {
-            color: #fff;
-            font-weight: 500;
-        }
-
-        /* 技术规格 Grid */
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-        }
-
-        .tech-item {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            border-left: 2px solid var(--accent-cyan);
-        }
-
-        /* =========================================
-           6. Footer & 杂项
-           ========================================= */
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--acid-green);
+            font-weight: bold;
             font-size: 0.8rem;
-            color: var(--text-tertiary);
+            margin-bottom: 5px;
+        }
+
+        .url-text {
+            color: var(--text-main);
+            font-family: monospace;
+        }
+
+        /* LISTS */
+        ul {
+            list-style: none;
+        }
+
+        li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        li strong {
+            color: var(--acid-green);
+            margin-right: 10px;
+        }
+
+        /* USAGE STEPS */
+        .usage-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            background: var(--acid-purple);
+            color: #fff;
+            padding: 0 10px;
+            font-weight: 900;
+            margin-right: 15px;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: 60px;
+            padding: 20px;
+            border-top: var(--border-thick) solid var(--text-main);
+            text-align: center;
+            font-weight: bold;
         }
 
         .footer a {
-            color: var(--text-secondary);
+            color: var(--acid-green);
             text-decoration: none;
-            transition: color 0.3s;
         }
 
         .footer a:hover {
-            color: var(--accent-cyan);
-        }
-
-        /* 加载与进度条 */
-        .scroll-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 2px;
-            background: var(--accent-cyan);
-            box-shadow: 0 0 10px var(--accent-cyan);
-            z-index: 9999;
-            transition: width 0.1s;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            transition: opacity 0.8s ease;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--accent-cyan);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 44px;
-            height: 44px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: #fff;
-            cursor: pointer;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.4s;
-            z-index: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .back-to-top:hover {
-            background: var(--accent-cyan);
+            background: var(--acid-green);
             color: #000;
         }
 
-        /* 移动端适配 */
+        /* SCROLL PROGRESS */
+        #scrollProgress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 10px;
+            background: var(--acid-green);
+            z-index: 10001;
+            width: 0;
+        }
+
+        /* NOTIFICATION */
+        #copyNotification {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--acid-green);
+            color: #000;
+            padding: 20px;
+            border: 3px solid #000;
+            box-shadow: 6px 6px 0 var(--acid-purple);
+            font-weight: 900;
+            z-index: 10002;
+        }
+
         @media (max-width: 768px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-                border: none;
-                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8));
-                padding: 30px 20px;
-                min-height: 100vh;
+            h1 {
+                font-size: 2.5rem;
             }
 
-            .btn-link,
-            .btn-secondary-link {
-                width: 100%;
-            }
-
-            .feature-list ul {
+            .btn-group {
                 grid-template-columns: 1fr;
             }
 
-            h1 {
-                font-size: 1.6rem;
+            .container {
+                margin: 10px;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- 背景层 -->
-    <div class="cinematic-bg"></div>
-    <div class="cinematic-overlay"></div>
-
-    <!-- 进度条与加载动画 -->
-    <div class="scroll-progress" id="scrollProgress"></div>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-    <button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+    <div id="scrollProgress"></div>
 
     <div class="container">
-        <!-- 头部 -->
-        <header style="text-align: center; margin-bottom: 40px;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🎾</div>
-            <h1>SZU SPORTS</h1>
-            <div class="version">AUTOMATIC BOOKING ASSISTANT v1.1.5</div>
+        <header
+            style="text-align: left; border-bottom: var(--border-thick) solid var(--text-main); margin-bottom: 30px; padding-bottom: 20px;">
+            <div style="font-size: 5rem; line-height: 1;">🎾</div>
+            <h1>SZU SPORTS<br>AUTOMATIC</h1>
+            <div class="version">VERSION 1.1.5 // STABLE</div>
         </header>
 
         <div class="desc">
-            专为深圳大学打造的智能场馆预约方案。<br>
-            支持 <span class="highlight">多项目并发</span> / <span class="highlight">智能优选</span> / <span
-                class="highlight">全平台兼容</span>。
+            针对深圳大学体育场馆开发的 <span class="highlight">快速</span> 预约方案。<br>
+            [ 抢场神器 ] [ 多场馆支持 ] [ 自动重连 ]<br>
         </div>
 
-        <!-- 按钮组 -->
         <div class="btn-group">
-            <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank"
-                rel="noopener">
-                <span>⚡ 安装脚本</span>
+            <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank">
+                ⚡ 安装脚本.EXE
             </a>
-            <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank" rel="noopener">
-                <span>GitHub 文档</span>
+            <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank">
+                GITHUB_文档
             </a>
         </div>
 
-        <!-- 链接区域 -->
         <div class="url-display">
-            <div class="card-title">ACCESS POINTS</div>
-
+            <div class="card-title">Access_Points / 接入点</div>
             <div class="url-link"
                 onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
-                <div class="url-label">🌐 校园网直连 (Intranet)</div>
+                <div class="url-label">> INTRANET / 校园网直连</div>
                 <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
             </div>
-
             <div class="url-link"
                 onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
-                <div class="url-label">🔗 WebVPN 通道 (Extranet)</div>
+                <div class="url-label">> WEBVPN / 校外访问通道</div>
                 <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
                 </div>
             </div>
-
-            <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 15px; text-align: center;">
-                点击卡片即可复制链接至剪贴板
-            </div>
         </div>
 
-        <!-- 功能特性 -->
         <div class="feature-list">
-            <div class="card-title">CORE FEATURES</div>
+            <div class="card-title">Core_Features / 核心功能</div>
             <ul>
-                <li><strong>🎯 智能预约</strong>支持羽毛球/网球等7大项目</li>
-                <li><strong>📱 全端覆盖</strong>iOS/Android 完美触摸适配</li>
-                <li><strong>🔄 弹性重试</strong>网络波动自动恢复机制</li>
-                <li><strong>💾 云端同步</strong>配置参数自动持久化存储</li>
+                <li><strong>[项目]</strong> 覆盖羽毛球、网球等 7 大热门场馆</li>
+                <li><strong>[速度]</strong> 极速抢票，秒级响应，提升预约成功率</li>
+                <li><strong>[稳定]</strong> 自动重连机制，断线自动恢复抢票</li>
             </ul>
         </div>
 
-        <!-- 使用指南 -->
         <div class="usage">
-            <div class="card-title">QUICK START</div>
-            <div class="usage-list" style="display: block;">
-                <div
-                    style="margin-bottom: 15px; border-left: 2px solid var(--accent-purple); padding-left: 15px; color: var(--text-secondary);">
-                    <div style="font-weight: bold; color: #fff; margin-bottom: 4px;">STEP 1</div>
-                    安装 Tampermonkey 浏览器插件（打开浏览器开发者模式）
-                </div>
-                <div
-                    style="margin-bottom: 15px; border-left: 2px solid var(--accent-purple); padding-left: 15px; color: var(--text-secondary);">
-                    <div style="font-weight: bold; color: #fff; margin-bottom: 4px;">STEP 2</div>
-                    点击上方 "安装脚本" 按钮完成配置
-                </div>
-                <div
-                    style="margin-bottom: 15px; border-left: 2px solid var(--accent-purple); padding-left: 15px; color: var(--text-secondary);">
-                    <div style="font-weight: bold; color: #fff; margin-bottom: 4px;">STEP 3</div>
-                    通过上方链接进入预约系统，点击 "🚀 开始抢票"（可能要多重启几次浏览器才能显示脚本界面）
-                </div>
+            <div class="card-title">Manual / 使用指南</div>
+            <div class="usage-item">
+                <div class="step-num">01</div>
+                <div>部署 <strong>Tampermonkey</strong> 浏览器环境（开启开发者模式）</div>
+            </div>
+            <div class="usage-item">
+                <div class="step-num">02</div>
+                <div>注入上方 <strong>安装脚本</strong> 并保持插件处于 ACTIVE 状态</div>
+            </div>
+            <div class="usage-item">
+                <div class="step-num">03</div>
+                <div>访问接入点链接，点击界面上的 <strong>🚀 开始抢票</strong> 按钮</div>
             </div>
         </div>
 
-        <!-- 技术规格 -->
         <div class="tech-specs">
-            <div class="tech-grid">
-                <div class="tech-item">
-                    <strong style="display:block; color:#fff; margin-bottom:5px;">移动端</strong>
-                    iOS Safari 14+<br>Android Chrome 80+
-                </div>
-                <div class="tech-item">
-                    <strong style="display:block; color:#fff; margin-bottom:5px;">桌面端</strong>
-                    Chrome / Edge 90+<br>Firefox 88+
-                </div>
+            <div class="card-title">Hardware_Compatibility / 兼容性</div>
+            <div style="display: flex; justify-content: space-between; font-family: monospace;">
+                <div>> DESKTOP: CHROME 90+ / EDGE</div>
+                <div>> MOBILE: SAFARI / VIA / X</div>
             </div>
         </div>
 
-        <!-- 页脚 -->
-        <div class="footer">
-            <div style="margin-bottom: 10px;">粤海校区 • 丽湖校区</div>
-            <div>
-                <a href="https://github.com/zskfree/SZU_Sports" target="_blank">Open Source Project</a>
-                <span style="margin: 0 10px; opacity: 0.3;">|</span>
-                Made by zskfree
+        <footer class="footer">
+            <div>LOCATION: YUEHAI / LIHU CAMPUS</div>
+            <div style="margin-top: 10px;">
+                MADE BY <span style="color:var(--acid-red)">ZSKFREE</span> // OPEN_SOURCE_PROJECT
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- 复制成功提示 -->
-    <div id="copyNotification"
-        style="display: none; position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(100, 255, 218, 0.9); color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 600; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
-        ✅ Link Copied
-    </div>
+    <div id="copyNotification">TEXT_COPIED_TO_CLIPBOARD</div>
 
     <script>
-        // 保持原有的JS逻辑完全不变
         function copyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            document.body.appendChild(textArea);
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
 
-            try {
-                textArea.focus();
-                textArea.select();
-                document.execCommand('copy');
-                showNotification();
-            } catch (err) {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(text).then(() => {
-                        showNotification();
-                    }).catch(() => {
-                        alert('请手动复制链接：' + text);
-                    });
-                } else {
-                    alert('请手动复制链接：' + text);
-                }
-            } finally {
-                document.body.removeChild(textArea);
-            }
+            const note = document.getElementById('copyNotification');
+            note.style.display = 'block';
+            setTimeout(() => note.style.display = 'none', 1500);
         }
 
-        function showNotification() {
-            const notification = document.getElementById('copyNotification');
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 2000);
-        }
-
-        // Loading 逻辑
-        window.addEventListener('load', function () {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            setTimeout(() => {
-                loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    loadingOverlay.style.display = 'none';
-                }, 800);
-            }, 500);
-        });
-
-        // 滚动逻辑
-        window.addEventListener('scroll', function () {
-            const scrollProgress = document.getElementById('scrollProgress');
-            const backToTop = document.getElementById('backToTop');
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = (scrollTop / scrollHeight) * 100;
-            scrollProgress.style.width = scrollPercent + '%';
-
-            if (scrollTop > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
-        });
-
-        document.getElementById('backToTop').addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById("scrollProgress").style.width = scrolled + "%";
         });
     </script>
 </body>
