@@ -35,7 +35,7 @@
             background-color: var(--bg-pure);
             color: var(--text-main);
             font-family: "Monaco", "PingFang SC", "Microsoft YaHei", monospace;
-            line-height: 1.5;
+            line-height: 1.6;
             overflow-x: hidden;
             -webkit-font-smoothing: none;
         }
@@ -57,7 +57,7 @@
         .container {
             max-width: 800px;
             margin: 40px auto;
-            padding: 20px;
+            padding: 30px;
             border: var(--border-thick) solid var(--text-main);
             background: var(--bg-pure);
             box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--acid-purple);
@@ -67,9 +67,9 @@
 
         /* TYPOGRAPHY */
         h1 {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            line-height: 0.9;
+            line-height: 1.1;
             text-transform: uppercase;
             color: var(--acid-green);
             -webkit-text-stroke: 1px #000;
@@ -82,16 +82,17 @@
             display: inline-block;
             background: var(--acid-red);
             color: #000;
-            padding: 2px 8px;
+            padding: 4px 12px;
             font-weight: bold;
             margin-bottom: 30px;
+            font-size: 0.9rem;
         }
 
         .desc {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border-left: 8px solid var(--acid-green);
             padding-left: 15px;
-            margin: 20px 0;
+            margin: 25px 0;
             background: rgba(255, 255, 255, 0.05);
         }
 
@@ -105,20 +106,20 @@
         /* COMPONENTS: INTERACTION */
         .btn-group {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
             margin: 40px 0;
         }
 
         .btn-link,
         .btn-secondary-link {
             text-decoration: none;
-            padding: 15px;
+            padding: 18px;
             text-align: center;
             font-weight: 900;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             border: var(--border-thick) solid var(--text-main);
-            transition: none;
+            transition: all 0.1s ease;
             display: block;
         }
 
@@ -153,10 +154,11 @@
             background: var(--text-main);
             color: #000;
             display: inline-block;
-            padding: 2px 12px;
+            padding: 4px 15px;
             font-weight: 900;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-transform: uppercase;
+            font-size: 0.9rem;
         }
 
         .url-display,
@@ -164,8 +166,8 @@
         .usage,
         .tech-specs {
             border: 2px solid var(--text-main);
-            padding: 20px;
-            margin-bottom: 25px;
+            padding: 25px;
+            margin-bottom: 30px;
             background: rgba(255, 255, 255, 0.02);
         }
 
@@ -173,8 +175,9 @@
             background: #111;
             border: 1px solid var(--text-main);
             padding: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             word-break: break-all;
+            transition: background 0.2s;
         }
 
         .url-link:hover {
@@ -185,13 +188,14 @@
         .url-label {
             color: var(--acid-green);
             font-weight: bold;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
         }
 
         .url-text {
             color: var(--text-main);
             font-family: monospace;
+            font-size: 0.9rem;
         }
 
         /* LISTS */
@@ -200,7 +204,7 @@
         }
 
         li {
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -211,7 +215,7 @@
 
         /* USAGE STEPS */
         .usage-item {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             align-items: flex-start;
         }
@@ -219,18 +223,20 @@
         .step-num {
             background: var(--acid-purple);
             color: #fff;
-            padding: 0 10px;
+            padding: 2px 12px;
             font-weight: 900;
             margin-right: 15px;
+            flex-shrink: 0;
         }
 
         /* FOOTER */
         .footer {
             margin-top: 60px;
-            padding: 20px;
+            padding: 30px 20px;
             border-top: var(--border-thick) solid var(--text-main);
             text-align: center;
             font-weight: bold;
+            font-size: 0.9rem;
         }
 
         .footer a {
@@ -248,7 +254,7 @@
             position: fixed;
             top: 0;
             left: 0;
-            height: 10px;
+            height: 8px;
             background: var(--acid-green);
             z-index: 10001;
             width: 0;
@@ -258,28 +264,49 @@
         #copyNotification {
             display: none;
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             background: var(--acid-green);
             color: #000;
-            padding: 20px;
+            padding: 15px 30px;
             border: 3px solid #000;
             box-shadow: 6px 6px 0 var(--acid-purple);
             font-weight: 900;
             z-index: 10002;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                line-height: 1.2;
+            }
+
+            .container {
+                margin: 15px;
+                padding: 20px;
             }
 
             .btn-group {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
-            .container {
-                margin: 10px;
+            .desc {
+                font-size: 1rem;
+            }
+
+            .url-display,
+            .feature-list,
+            .usage,
+            .tech-specs {
+                padding: 15px;
+            }
+
+            .step-num {
+                padding: 2px 8px;
+                margin-right: 10px;
             }
         }
     </style>
@@ -291,27 +318,35 @@
     <div class="container">
         <header
             style="text-align: left; border-bottom: var(--border-thick) solid var(--text-main); margin-bottom: 30px; padding-bottom: 20px;">
-            <div style="font-size: 5rem; line-height: 1;">🎾</div>
-            <h1>SZU SPORTS<br>AUTOMATIC</h1>
-            <div class="version">VERSION 1.2.3 // STABLE</div>
+            <div style="font-size: 4rem; line-height: 1;">🎾</div>
+            <h1>深大体育场馆<br>自动抢票助手</h1>
+            <div class="version">版本 1.2.3 // 稳定版</div>
         </header>
 
         <div class="desc">
-            针对深圳大学体育场馆开发的 <span class="highlight">快速</span> 预约方案。<br>
+            针对深圳大学体育场馆开发的 <span class="highlight">极速</span> 预约方案。<br>
             [ 抢场神器 ] [ 多场馆支持 ] [ 自动重连 ]<br>
         </div>
 
-        <!-- INSTALLATION & USAGE SECTION -->
+        <!-- 快速开始 -->
         <div class="usage" style="border-color: var(--acid-green); border-width: 3px;">
-            <div class="card-title" style="background: var(--acid-green);">00_Quick_Start / 快速开始</div>
+            <div class="card-title" style="background: var(--acid-green);">00_快速开始 / 安装指南</div>
 
             <div class="usage-item">
-                <div class="step-num">PC 电脑端</div>
-                <div>浏览器扩展安装 <strong>Tampermonkey</strong> -> 点击下方 <strong>安装脚本</strong> -> 访问预约站点</div>
+                <div class="step-num">电脑端</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>1. 安装 <strong>Tampermonkey</strong> 浏览器扩展</div>
+                    <div>2. 点击下方 <strong>安装脚本 (主站)</strong></div>
+                    <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
+                </div>
             </div>
-            <div class="usage-item">
-                <div class="step-num">手机、平板移动端</div>
-                <div>使用 <strong>Via 浏览器</strong> -> 点击下方 <strong>镜像安装</strong> -> 访问预约站点</div>
+            <div class="usage-item" style="margin-top: 25px;">
+                <div class="step-num">手机端</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div>1. 推荐使用 <strong>Via 浏览器</strong> (极致轻量)</div>
+                    <div>2. 点击下方 <strong>镜像安装 (国内直达)</strong></div>
+                    <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
+                </div>
             </div>
         </div>
 
@@ -322,30 +357,30 @@
             <a class="btn-link"
                 style="background: var(--acid-purple); color: #fff; box-shadow: 6px 6px 0 var(--acid-green);"
                 href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386" target="_blank">
-                🚀 安装脚本 (镜像)
+                🚀 镜像安装 (国内直达)
             </a>
             <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank">
-                GITHUB_文档
+                GITHUB 源码仓库
             </a>
         </div>
 
         <div class="url-display">
-            <div class="card-title">Access_Points / 预约入口</div>
+            <div class="card-title">预约入口 / 接入点</div>
             <div class="url-link"
                 onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
-                <div class="url-label">> INTRANET / 校园网直连</div>
+                <div class="url-label">> 校园网直连 (校内)</div>
                 <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue</div>
             </div>
             <div class="url-link"
                 onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
-                <div class="url-label">> WEBVPN / 校外访问通道</div>
+                <div class="url-label">> 校外访问通道 (WEBVPN)</div>
                 <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue
                 </div>
             </div>
         </div>
 
         <div class="feature-list">
-            <div class="card-title">Core_Features / 核心功能</div>
+            <div class="card-title">核心功能</div>
             <ul>
                 <li><strong>[项目]</strong> 覆盖羽毛球、网球等 7 大热门场馆</li>
                 <li><strong>[速度]</strong> 极速抢票，秒级响应，提升预约成功率</li>
@@ -354,7 +389,7 @@
         </div>
 
         <div class="usage">
-            <div class="card-title">Detailed_Manual / 详细指南</div>
+            <div class="card-title">详细指南</div>
             <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.2);">
                 <strong>[ 电脑端 ]</strong> 需开启浏览器“开发者模式”以确保脚本权限正常。
             </div>
@@ -365,14 +400,14 @@
         </div>
 
         <footer class="footer">
-            <div>LOCATION: YUEHAI / LIHU CAMPUS</div>
+            <div>地点：深圳大学 粤海 / 丽湖校区</div>
             <div style="margin-top: 10px;">
-                MADE BY <span style="color:var(--acid-red)">ZSKFREE</span> // OPEN_SOURCE_PROJECT
+                由 <span style="color:var(--acid-red)">ZSKFREE</span> 开发 // 开源项目
             </div>
         </footer>
     </div>
 
-    <div id="copyNotification">TEXT_COPIED_TO_CLIPBOARD</div>
+    <div id="copyNotification">链接已复制到剪贴板</div>
 
     <script>
         function copyToClipboard(text) {
