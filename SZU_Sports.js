@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动抢票
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1
+// @version      1.2.2
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.2.1',
+        version: '1.2.2',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -707,7 +707,7 @@
 
         panel.innerHTML = `
         <div style="margin-bottom:15px;text-align:center;position:relative;">
-            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.2.1</h3>
+            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动抢票助手 v1.2.2</h3>
             <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
             <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
         </div>
@@ -1581,13 +1581,25 @@
 
         const scheduledDateInput = document.getElementById('scheduled-date');
         const scheduledTimeInput = document.getElementById('scheduled-time');
-
+        
+        const savedScheduledTime = Storage.get('scheduledTime', null);
+        const hasSavedSchedule = typeof savedScheduledTime === 'number' && savedScheduledTime > Date.now();
+        
+        const pad2 = (n) => String(n).padStart(2, '0');
+        const formatLocalDateInput = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        const formatLocalTimeInput = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+        
         if (scheduledDateInput && scheduledTimeInput) {
+          if (hasSavedSchedule) {
+            const d = new Date(savedScheduledTime);
+            scheduledDateInput.value = formatLocalDateInput(d);
+            scheduledTimeInput.value = formatLocalTimeInput(d);
+          } else {
             scheduledDateInput.value = defaultDateTime.date;
-            // 默认设置为下一个整点
             const nextHour = new Date();
             nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-            scheduledTimeInput.value = `${String(nextHour.getHours()).padStart(2, '0')}:00`;
+            scheduledTimeInput.value = `${pad2(nextHour.getHours())}:00`;
+          }
         }
 
         // 检查是否是预约前刷新恢复的状态
