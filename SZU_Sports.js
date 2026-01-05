@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动预约
 // @namespace    http://tampermonkey.net/
-// @version      1.2.3
+// @version      1.2.4
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.2.3',
+        version: '1.2.4',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -707,7 +707,7 @@
 
         panel.innerHTML = `
         <div style="margin-bottom:15px;text-align:center;position:relative;">
-            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动预约助手 v1.2.3</h3>
+            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动预约助手 v1.2.4</h3>
             <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
             <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
         </div>
