@@ -105,7 +105,7 @@
         /* COMPONENTS: INTERACTION */
         .btn-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin: 40px 0;
         }
@@ -293,7 +293,7 @@
             style="text-align: left; border-bottom: var(--border-thick) solid var(--text-main); margin-bottom: 30px; padding-bottom: 20px;">
             <div style="font-size: 5rem; line-height: 1;">🎾</div>
             <h1>SZU SPORTS<br>AUTOMATIC</h1>
-            <div class="version">VERSION 1.1.5 // STABLE</div>
+            <div class="version">VERSION 1.2.3 // STABLE</div>
         </header>
 
         <div class="desc">
@@ -301,9 +301,28 @@
             [ 抢场神器 ] [ 多场馆支持 ] [ 自动重连 ]<br>
         </div>
 
+        <!-- INSTALLATION & USAGE SECTION -->
+        <div class="usage" style="border-color: var(--acid-green); border-width: 3px;">
+            <div class="card-title" style="background: var(--acid-green);">00_Quick_Start / 快速开始</div>
+
+            <div class="usage-item">
+                <div class="step-num">PC 电脑端</div>
+                <div>浏览器扩展安装 <strong>Tampermonkey</strong> -> 点击下方 <strong>安装脚本</strong> -> 访问预约站点</div>
+            </div>
+            <div class="usage-item">
+                <div class="step-num">手机、平板移动端</div>
+                <div>使用 <strong>Via 浏览器</strong> -> 点击下方 <strong>镜像安装</strong> -> 访问预约站点</div>
+            </div>
+        </div>
+
         <div class="btn-group">
             <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动抢票" target="_blank">
-                ⚡ 安装脚本.EXE
+                ⚡ 安装脚本 (主站)
+            </a>
+            <a class="btn-link"
+                style="background: var(--acid-purple); color: #fff; box-shadow: 6px 6px 0 var(--acid-green);"
+                href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386" target="_blank">
+                🚀 安装脚本 (镜像)
             </a>
             <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank">
                 GITHUB_文档
@@ -311,7 +330,7 @@
         </div>
 
         <div class="url-display">
-            <div class="card-title">Access_Points / 接入点</div>
+            <div class="card-title">Access_Points / 预约入口</div>
             <div class="url-link"
                 onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#/sportVenue')">
                 <div class="url-label">> INTRANET / 校园网直连</div>
@@ -335,26 +354,13 @@
         </div>
 
         <div class="usage">
-            <div class="card-title">Manual / 使用指南</div>
-            <div class="usage-item">
-                <div class="step-num">01</div>
-                <div>部署 <strong>Tampermonkey</strong> 浏览器环境（开启开发者模式）</div>
+            <div class="card-title">Detailed_Manual / 详细指南</div>
+            <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.2);">
+                <strong>[ 电脑端 ]</strong> 需开启浏览器“开发者模式”以确保脚本权限正常。
             </div>
-            <div class="usage-item">
-                <div class="step-num">02</div>
-                <div>注入上方 <strong>安装脚本</strong> 并保持插件处于 ACTIVE 状态</div>
-            </div>
-            <div class="usage-item">
-                <div class="step-num">03</div>
-                <div>访问接入点链接，点击界面上的 <strong>🚀 开始抢票</strong> 按钮</div>
-            </div>
-        </div>
-
-        <div class="tech-specs">
-            <div class="card-title">Hardware_Compatibility / 兼容性</div>
-            <div style="display: flex; justify-content: space-between; font-family: monospace;">
-                <div>> DESKTOP: CHROME 90+ / EDGE</div>
-                <div>> MOBILE: SAFARI / VIA / X</div>
+            <div style="margin-bottom: 10px;">
+                <strong>[ 手机端 ]</strong> Via 浏览器用户可直接点击 <a href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386"
+                    target="_blank" class="highlight" style="text-decoration: none;">此处直达安装</a>。
             </div>
         </div>
 

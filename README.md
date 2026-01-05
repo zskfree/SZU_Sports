@@ -1,6 +1,6 @@
 # 深圳大学体育场馆自动抢票脚本 🎾
 
-版本: 1.2.1  
+版本: 1.2.3  
 作者: zskfree  
 许可证: MIT
 
@@ -11,12 +11,13 @@
 这是一个 Tampermonkey / 用户脚本，用于自动化预约深圳大学（SZU）体育场馆。脚本兼容 iOS、Android、iPad、移动端与桌面端，提供智能抢票、定时预约、重试/限频策略与可选的企业微信通知。
 
 脚本元信息（来自脚本头部）：
+
 - 名称: 深圳大学体育场馆自动抢票
-- 版本: 1.2.1
+- 版本: 1.2.3
 - 运行环境: document-end
 - 匹配地址:
-  - https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
-  - https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
+  - <https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/>*
+  - <https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/>*
 - 授权跨域/权限:
   - GM_xmlhttpRequest（跨域请求，用于企业微信推送等）
   - GM_setValue / GM_getValue（用于持久化设置/定时任务）
@@ -37,9 +38,10 @@
 
 ## 安装
 
-1. 安装浏览器用户脚本管理器（推荐 Tampermonkey）：https://www.tampermonkey.net/  
-2. 从 Greasy Fork 安装脚本（或点击脚本头部的 @downloadURL）：  
-   Greasy Fork: https://greasyfork.org/scripts/537386  
+1. 安装浏览器用户脚本管理器（推荐 Tampermonkey）：<https://www.tampermonkey.net/>  
+2. 从 Greasy Fork 安装脚本：  
+   - **主站 (推荐):** [Greasy Fork](https://greasyfork.org/scripts/537386)  
+   - **国内镜像 (无法访问主站时使用):** [GFork 镜像](https://gfork.zh-tw.eu.org/zh-hans/scripts/537386)  
 3. 在 Tampermonkey 中启用并确保脚本已被允许在目标页面运行。
 
 提示（Windows 桌面端）：若使用浏览器扩展，某些浏览器需要在扩展设置中开启“开发者模式”或允许跨域 GM_xmlhttpRequest 权限。
@@ -49,10 +51,12 @@
 ## 使用与配置
 
 访问深大场馆预约页面（脚本会在这些页面自动注入 UI）：
+
 - 校内: `https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/`
 - VPN: `https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/`
 
 ### 基础设置（必填）
+
 - 学号/工号：例如 `2300123999`（8–12 位数字）
 - 姓名：例如 `张三`（2–10 个汉字）
 - 预约日期：默认自动选“明天”，可手动调整
@@ -60,6 +64,7 @@
 - 校区：粤海 / 丽湖
 
 ### 高级设置（可选）
+
 参数 | 范围 | 默认值 | 说明
 ---|---:|---:|---
 查询间隔 | 1–60 秒 | 1 秒 | 每次查询的时间间隔
@@ -69,6 +74,7 @@
 > 注意：过短的间隔或过高的并发可能触发服务端限流，请合理设置。
 
 ### 场馆优先级（示例：丽湖羽毛球）
+
 - 至畅体育馆：优先级最高（例如 5 号、10 号场位最优）
 - 至快体育馆：次优
 - 全部场馆：不限制
@@ -78,17 +84,20 @@
 ## 操作流程
 
 立即抢票：
+
 1. 点击页面上的“配置设置”展开面板
 2. 填写或确认个人信息与预约参数
 3. 勾选最多两个优先时间段（主/备）
 4. 保存配置并点击“开始抢票”
 
 定时抢票：
+
 1. 在“定时抢票”区域选择目标日期和触发时间
 2. 设置定时并保存，脚本将在到点自动开始抢票
 3. 页面刷新后定时任务会自动恢复（因为配置已持久化）
 
 桌面快捷键（仅桌面端）：
+
 - Ctrl + Shift + S：开始 / 停止抢票
 - Ctrl + Shift + H：显示 / 隐藏面板
 
@@ -110,6 +119,7 @@
 ## 企业微信推送（可选）
 
 脚本支持在预约成功后发送企业微信通知，但需要你自行配置推送信息或企业微信 webhook。主要注意点：
+
 - 脚本在元信息中允许跨域请求：@connect qyapi.weixin.qq.com
 - 你需要在脚本设置中填写企业微信 webhook URL 或在脚本中按注释提示填写企业微信应用的 agentid、secret 等信息
 - 为避免泄露敏感信息，建议仅在本地环境中配置并且不要将含敏感信息的配置上传到公共仓库
@@ -141,7 +151,11 @@ A: 不能，每次只能选择一个校区。若需预约不同校区，需分�
 
 ## 更新日志（简要）
 
-- v1.2.1 (当前)
+- v1.2.3 (当前)
+  - 新增国内镜像站安装链接，优化国内用户访问体验
+  - 同步更新 README 与 index.html 介绍文档
+
+- v1.2.2
   - 修正/同步脚本头部元信息与 README 中的版本信息
   - 增强跨域推送说明与安全提示
   - 若干 UI 与移动端稳定性优化（参见脚本内注释）
@@ -157,9 +171,11 @@ A: 不能，每次只能选择一个校区。若需预约不同校区，需分�
 
 ## 贡献与反馈
 
-- 问题反馈：https://github.com/zskfree/SZU_Sports/issues  
+- 问题反馈：<https://github.com/zskfree/SZU_Sports/issues>  
 - 功能建议 / 提交 PR：欢迎 Fork 并提交 Pull Request  
-- Greasy Fork（脚本主页）：https://greasyfork.org/scripts/537386
+- 脚本主页：
+  - [Greasy Fork (主站)](https://greasyfork.org/scripts/537386)
+  - [GFork (镜像站)](https://gfork.zh-tw.eu.org/zh-hans/scripts/537386)
 
 ---
 
