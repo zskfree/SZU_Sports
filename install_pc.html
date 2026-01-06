@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>电脑安装教程 | SZU Sports ⚡</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root {
+            --bg-pure: #050505;
+            --text-main: #eaeaea;
+            --acid-green: #ccff00;
+            --acid-purple: #7000ff;
+            --acid-red: #ff0033;
+            --border-thick: 3px;
+            --shadow-offset: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            border-radius: 0 !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-pure);
+            color: var(--text-main);
+            font-family: "Monaco", "PingFang SC", "Microsoft YaHei", monospace;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            border: var(--border-thick) solid var(--text-main);
+            background: var(--bg-pure);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--acid-purple);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--acid-green);
+            text-shadow: 4px 4px 0 #000, 8px 8px 0 var(--acid-purple);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            background: var(--acid-green);
+            color: #000;
+            display: inline-block;
+            padding: 4px 15px;
+            font-weight: 900;
+            margin: 40px 0 20px 0;
+            font-size: 1.2rem;
+        }
+
+        .step-content {
+            border: 2px solid var(--text-main);
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 20px;
+        }
+
+        .step-image {
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid var(--text-main);
+            margin-top: 15px;
+            display: block;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            padding: 12px 24px;
+            font-weight: 900;
+            background: var(--text-main);
+            color: #000;
+            display: inline-block;
+            margin-bottom: 30px;
+            border: var(--border-thick) solid #000;
+            box-shadow: 4px 4px 0 var(--acid-red);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-back:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0 var(--acid-green);
+            background: var(--acid-purple);
+            color: #fff;
+        }
+
+        .highlight {
+            color: var(--acid-green);
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        a.highlight:hover,
+        .step-content a:hover {
+            background: var(--acid-green);
+            color: #000;
+            padding: 0 4px;
+        }
+
+        a {
+            color: var(--acid-green);
+            transition: all 0.2s ease;
+        }
+
+        .step-image {
+            width: 100%;
+            max-width: 600px;
+            border: 2px solid var(--text-main);
+            margin-top: 15px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .step-image:hover {
+            transform: scale(1.02);
+            border-color: var(--acid-green);
+        }
+
+        .note {
+            border-left: 4px solid var(--acid-red);
+            padding: 10px 15px;
+            background: rgba(255, 0, 51, 0.1);
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: var(--acid-green);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">← 返回首页</a>
+
+        <header style="border-bottom: var(--border-thick) solid var(--text-main); padding-bottom: 20px;">
+            <h1>电脑端安装脚本教程</h1>
+            <p>本指南将详细介绍如何在 PC 浏览器上配置 Tampermonkey 并安装 SZU Sports 脚本。</p>
+        </header>
+
+        <section id="step1">
+            <h2>01. 安装 Tampermonkey 扩展</h2>
+            <div class="step-content">
+                <div class="note">
+                    <strong>提示：</strong> 以下以 Microsoft Edge 为例，Chrome / Firefox 等浏览器操作流程基本一致。
+                </div>
+
+                <p>1. <strong>打开扩展管理页面</strong>：在浏览器地址栏输入 <span class="highlight">edge://extensions/</span> 或通过菜单进入。</p>
+                <img src="img/电脑1.png" alt="打开扩展管理" class="step-image">
+
+                <p style="margin-top: 20px;">2. <strong>启用开发者模式</strong>：确保右上角的<span
+                        class="highlight">“开发人员模式”</span>开关已开启。</p>
+                <img src="img/电脑2.png" alt="启用开发者模式" class="step-image">
+
+                <p style="margin-top: 20px;">3. <strong>进入扩展商店</strong>：点击“获取 Microsoft Edge 扩展”。</p>
+                <img src="img/电脑3.png" alt="进入商店" class="step-image">
+
+                <p style="margin-top: 20px;">4. <strong>搜索并安装</strong>：搜索 <span
+                        class="highlight">Tampermonkey</span>，点击“获取”并确认添加。</p>
+                <img src="img/电脑4.png" alt="搜索" class="step-image">
+                <img src="img/电脑5.png" alt="确认安装" class="step-image" style="margin-top: 10px;">
+            </div>
+        </section>
+
+        <section id="step2">
+            <h2>02. 安装 SZU Sports 脚本</h2>
+            <div class="step-content">
+                <p>1. <strong>访问安装页面</strong>：打开 <a
+                        href="https://www.zskksz.asia/SZU_Sports/">https://www.zskksz.asia/SZU_Sports/</a>。</p>
+                <p>2. <strong>开始安装</strong>：点击“镜像安装（国内直达）”，随后在跳转的页面点击<span class="highlight">“安装此脚本”</span>。</p>
+                <img src="img/电脑6.png" alt="点击镜像安装" class="step-image">
+                <img src="img/电脑7.png" alt="点击安装此脚本" class="step-image" style="margin-top: 10px;">
+
+                <p style="margin-top: 20px;">3. <strong>最终确认</strong>：在弹出的安装确认页面点击<span class="highlight">“安装”</span>按钮。
+                </p>
+                <img src="img/电脑8.png" alt="最终安装确认" class="step-image">
+            </div>
+        </section>
+
+        <section id="step3">
+            <h2>03. 使用与验证</h2>
+            <div class="step-content">
+                <p>1. <strong>复制连接</strong>：回到脚本主页，点击“预约入口”中的链接，地址将自动复制。</p>
+                <img src="img/电脑9.png" alt="复制链接" class="step-image">
+
+                <p style="margin-top: 20px;">2. <strong>打开页面</strong>：在新标签页粘贴并访问。如果看到如下界面，说明脚本已成功运行！</p>
+                <img src="img/电脑10.png" alt="脚本运行验证" class="step-image">
+            </div>
+        </section>
+
+        <section id="faq">
+            <h2>常见问题 FAQ</h2>
+            <div class="step-content">
+                <p><strong>Q: 其他浏览器如何安装？</strong></p>
+                <p>A: Chrome、Firefox 等浏览器均支持 Tampermonkey，请前往各自对应的应用商店搜索安装即可。</p>
+                <br>
+                <p><strong>Q: 脚本没有加载出来？</strong></p>
+                <p>A: 请检查是否开启了“开发者模式”，并确保 Tampermonkey 扩展处于启用状态。</p>
+            </div>
+        </section>
+
+        <footer
+            style="margin-top: 60px; padding-top: 20px; border-top: 1px dashed var(--text-main); text-align: center; font-size: 0.8rem; opacity: 0.6;">
+            SZU Sports PC Installation Guide // Crafted by ZSKFREE
+        </footer>
+    </div>
+</body>
+
+</html>

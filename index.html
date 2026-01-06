@@ -101,6 +101,14 @@
             background: var(--acid-green);
             padding: 0 4px;
             font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        a.highlight:hover {
+            background: var(--acid-red);
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 3px 3px 0 var(--acid-purple);
         }
 
         /* COMPONENTS: INTERACTION */
@@ -119,8 +127,10 @@
             font-weight: 900;
             font-size: 1.1rem;
             border: var(--border-thick) solid var(--text-main);
-            transition: all 0.1s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: block;
+            position: relative;
+            cursor: pointer;
         }
 
         .btn-link {
@@ -130,10 +140,10 @@
         }
 
         .btn-link:hover {
-            background: #000;
-            color: var(--acid-green);
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0 var(--acid-red);
+            background: var(--acid-red);
+            color: #fff;
+            transform: translate(-2px, -2px);
+            box-shadow: 10px 10px 0 var(--acid-green);
         }
 
         .btn-secondary-link {
@@ -143,10 +153,10 @@
         }
 
         .btn-secondary-link:hover {
-            background: var(--text-main);
-            color: #000;
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0 var(--acid-green);
+            background: var(--acid-purple);
+            color: #fff;
+            transform: translate(-2px, -2px);
+            box-shadow: 10px 10px 0 var(--acid-green);
         }
 
         /* INFORMATION BLOCKS */
@@ -177,13 +187,42 @@
             padding: 15px;
             margin-bottom: 15px;
             word-break: break-all;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
         .url-link:hover {
             border-color: var(--acid-green);
-            background: var(--acid-purple);
+            background: rgba(112, 0, 255, 0.3);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(204, 255, 0, 0.2);
+        }
+
+        .url-link::after {
+            content: "CLICK TO COPY";
+            position: absolute;
+            right: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--acid-green);
+            color: #000;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .url-link:hover::after {
+            right: 15px;
+        }
+
+        a,
+        .btn-link,
+        .btn-secondary-link,
+        .url-link {
+            cursor: pointer;
         }
 
         .url-label {
@@ -337,7 +376,8 @@
                 <div class="step-num">电脑端</div>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div>1. 安装 <strong>Tampermonkey</strong> 浏览器扩展</div>
-                    <div>2. 点击下方 <strong>安装脚本 (主站)</strong></div>
+                    <div>2. 查看 <a href="install_pc.html" class="highlight"
+                            style="text-decoration: underline;">电脑端图文安装教程</a></div>
                     <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
                 </div>
             </div>
@@ -345,7 +385,8 @@
                 <div class="step-num">手机端</div>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div>1. 推荐使用 <strong>Via 浏览器</strong> (极致轻量)</div>
-                    <div>2. 点击下方 <strong>镜像安装 (国内直达)</strong></div>
+                    <div>2. 点击查看 <a href="install.html" class="highlight"
+                            style="text-decoration: underline;">手机端图文安装教程</a></div>
                     <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
                 </div>
             </div>
@@ -392,11 +433,12 @@
         <div class="usage">
             <div class="card-title">详细指南</div>
             <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.2);">
-                <strong>[ 电脑端 ]</strong> 需开启浏览器“开发者模式”以确保脚本权限正常。
+                <strong>[ 电脑端 ]</strong> 建议查看 <a href="install_pc.html" class="highlight"
+                    style="text-decoration: none; border-bottom: 1px solid;">电脑端图文教程</a>（需开启浏览器的开发者模式）。
             </div>
             <div style="margin-bottom: 10px;">
-                <strong>[ 手机端 ]</strong> Via 浏览器用户可直接点击 <a href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386"
-                    target="_blank" class="highlight" style="text-decoration: none;">此处直达安装</a>。
+                <strong>[ 手机端 ]</strong> 初次使用建议查看 <a href="install.html" class="highlight"
+                    style="text-decoration: none; border-bottom: 1px solid;">手机端图文教程</a>。
             </div>
         </div>
 
