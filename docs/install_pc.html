@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>电脑安装教程 | SZU Sports ⚡</title>
+    <title>电脑安装教程 | Sports Script ⚡</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         :root {
@@ -145,9 +145,9 @@
         <a href="index.html" class="btn-back">← 返回首页</a>
 
         <header style="border-bottom: var(--border-thick) solid var(--text-main); padding-bottom: 20px;">
-            <h1>电脑端安装脚本教程</h1>
-            <p>本指南将详细介绍如何在 PC 浏览器上配置 Tampermonkey 并安装 SZU Sports 脚本。</p>
-            <p style="margin-top: 10px; opacity: 0.8;">华中农业大学版（HZAU）安装流程完全一致，只需导入仓库中的 HZAU 脚本并打开华农预约入口即可。</p>
+            <h1>电脑端安装脚本教程（通用）</h1>
+            <p>本指南将详细介绍如何在 PC 浏览器上配置 Tampermonkey 并安装/运行脚本。</p>
+            <p style="margin-top: 10px; opacity: 0.8;">核心思路：安装 Tampermonkey → 安装脚本（主站/镜像/文件导入）→ 打开对应学校的预约入口页面。</p>
         </header>
 
         <section id="step1">
@@ -175,11 +175,13 @@
         </section>
 
         <section id="step2">
-            <h2>02. 安装 SZU Sports 脚本</h2>
+            <h2>02. 安装脚本</h2>
             <div class="step-content">
-                <p>1. <strong>访问安装页面</strong>：打开 <a
+                <p>1. <strong>访问安装页面</strong>：打开脚本安装页/项目首页。</p>
+                <p style="margin-top: 6px;">本项目安装页示例：<a
                         href="https://www.zskksz.asia/SZU_Sports/">https://www.zskksz.asia/SZU_Sports/</a>。</p>
-                <p>2. <strong>开始安装</strong>：点击“镜像安装（国内直达）”，随后在跳转的页面点击<span class="highlight">“安装此脚本”</span>。</p>
+                <p style="margin-top: 10px;">2. <strong>开始安装</strong>：在页面中选择你需要的脚本，点击“主站安装 / 镜像安装”等按钮，随后在跳转页面点击<span
+                        class="highlight">“安装此脚本”</span>。</p>
                 <img src="assets/img/电脑6.png" alt="点击镜像安装" class="step-image">
                 <img src="assets/img/电脑7.png" alt="点击安装此脚本" class="step-image" style="margin-top: 10px;">
 
@@ -192,11 +194,15 @@
         <section id="step3">
             <h2>03. 使用与验证</h2>
             <div class="step-content">
-                <p>1. <strong>复制连接</strong>：回到脚本主页，点击“预约入口”中的链接，地址将自动复制。</p>
+                <p>1. <strong>复制链接</strong>：回到脚本安装页/项目首页，点击“预约入口”中的链接，地址将自动复制。</p>
                 <img src="assets/img/电脑9.png" alt="复制链接" class="step-image">
 
                 <p style="margin-top: 20px;">2. <strong>打开页面</strong>：在新标签页粘贴并访问。如果看到如下界面，说明脚本已成功运行！</p>
                 <img src="assets/img/电脑10.png" alt="脚本运行验证" class="step-image">
+
+                <div class="note" style="margin-top: 20px;">
+                    <strong>排查：</strong>如果没有加载脚本面板，请检查：Tampermonkey 是否启用、脚本是否已安装且已开启、以及当前打开页面是否为该脚本匹配的预约入口域名。
+                </div>
             </div>
         </section>
 
@@ -213,7 +219,7 @@
 
         <footer
             style="margin-top: 60px; padding-top: 20px; border-top: 1px dashed var(--text-main); text-align: center; font-size: 0.8rem; opacity: 0.6;">
-            SZU Sports PC Installation Guide // Crafted by ZSKFREE
+            Sports Script PC Installation Guide // Crafted by ZSKFREE
         </footer>
     </div>
 </body>
