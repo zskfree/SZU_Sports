@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SZU Sports | ⚡ 极限预约助手</title>
+    <title>SZU & HZAU Sports | ⚡ 极限预约助手</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         /* 
@@ -359,47 +359,61 @@
         <header
             style="text-align: left; border-bottom: var(--border-thick) solid var(--text-main); margin-bottom: 30px; padding-bottom: 20px;">
             <div style="font-size: 4rem; line-height: 1;">🎾</div>
-            <h1>深大体育场馆<br>自动预约助手</h1>
+            <h1>体育场馆<br>自动预约助手</h1>
             <div class="version">版本 1.2.4 // 稳定版</div>
         </header>
 
         <div class="desc">
-            针对深圳大学体育场馆开发的 <span class="highlight">极速</span> 预约方案。<br>
-            [ 抢场神器 ] [ 多场馆支持 ] [ 自动重连 ]<br>
+            针对深圳大学与华中农业大学体育场馆的 <span class="highlight">极速</span> 预约方案。<br>
+            [ 抢场神器 ] [ 多场馆支持 ] [ 自动重连 ]
         </div>
 
         <!-- 快速开始 -->
         <div class="usage" style="border-color: var(--acid-green); border-width: 3px;">
             <div class="card-title" style="background: var(--acid-green);">00_快速开始 / 安装指南</div>
 
+            <!-- <div style="margin: 0 0 18px 0; opacity: 0.85;">
+                选择对应学校（SZU / HZAU）的安装按钮完成脚本安装，然后打开下方对应的预约入口即可。
+            </div> -->
+
             <div class="usage-item">
                 <div class="step-num">电脑端</div>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div>1. 安装 <strong>Tampermonkey</strong> 浏览器扩展</div>
-                    <div>2. 查看 <a href="install_pc.html" class="highlight"
+                    <div>2. 点击查看 <a href="install_pc.html" class="highlight"
                             style="text-decoration: underline;">电脑端图文安装教程</a></div>
-                    <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
+                    <div>3. 打开下方 <strong>SZU / HZAU 预约入口</strong> 即可开始</div>
                 </div>
             </div>
             <div class="usage-item" style="margin-top: 25px;">
                 <div class="step-num">手机端</div>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <div>1. 推荐使用 <strong>Via 浏览器</strong> (极致轻量)</div>
+                    <div>1. 安装 <strong>Via 浏览器</strong> (极致轻量)</div>
                     <div>2. 点击查看 <a href="install_phone.html" class="highlight"
                             style="text-decoration: underline;">手机端图文安装教程</a></div>
-                    <div>3. 访问下方 <strong>预约入口</strong> 即可开始</div>
+                    <div>3. 打开下方 <strong>SZU / HZAU 预约入口</strong> 即可开始</div>
                 </div>
             </div>
         </div>
 
         <div class="btn-group">
             <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动预约" target="_blank">
-                ⚡ 安装脚本 (主站)
+                ⚡ SZU 安装脚本 (主站)
             </a>
             <a class="btn-link"
                 style="background: var(--acid-purple); color: #fff; box-shadow: 6px 6px 0 var(--acid-green);"
                 href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386" target="_blank">
-                🚀 镜像安装 (国内直达)
+                🚀 SZU 镜像安装 (国内直达)
+            </a>
+            <a class="btn-link"
+                style="background: var(--acid-red); color: #fff; box-shadow: 6px 6px 0 var(--acid-purple);"
+                href="https://greasyfork.org/zh-CN/scripts/561678-华中农业大学体育场馆自动预约" target="_blank">
+                🏸 HZAU 安装脚本 (主站)
+            </a>
+            <a class="btn-link"
+                style="background: var(--acid-purple); color: #fff; box-shadow: 6px 6px 0 var(--acid-green);"
+                href="https://gfork.zh-tw.eu.org/zh-hans/scripts/561678" target="_blank">
+                🚀 HZAU 镜像安装 (国内直达)
             </a>
             <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank">
                 GITHUB 源码仓库
@@ -407,7 +421,7 @@
         </div>
 
         <div class="url-display">
-            <div class="card-title">预约入口</div>
+            <div class="card-title">SZU 预约入口</div>
             <div class="url-link" onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#')"
                 style="display: block;">
                 <div class="url-label">> 校园网直连 (校内) [点击复制链接]</div>
@@ -421,12 +435,24 @@
             </div>
         </div>
 
+        <div class="url-display" style="border-color: var(--acid-purple); box-shadow: 0 0 0 0;">
+            <div class="card-title">HZAU 预约入口</div>
+            <div style="margin-bottom: 12px; line-height: 1.5;">
+                安装方式与 SZU 版相同：先安装脚本（上方 HZAU 按钮），再打开入口登录并按面板提示选择场馆/日期/时段即可。
+            </div>
+            <div class="url-link" onclick="copyToClipboard('https://zhcg.hzau.edu.cn/')" style="display: block;">
+                <div class="url-label">> 华农预约入口 [点击复制链接]</div>
+                <div class="url-text">https://zhcg.hzau.edu.cn/</div>
+            </div>
+        </div>
+
         <div class="feature-list">
             <div class="card-title">核心功能</div>
             <ul>
-                <li><strong>[项目]</strong> 覆盖羽毛球、网球等 7 大热门场馆</li>
-                <li><strong>[速度]</strong> 极速预约，秒级响应，提升预约成功率</li>
-                <li><strong>[稳定]</strong> 自动重连机制，断线自动恢复预约</li>
+                <li><strong>[通用]</strong> 定时抢票 + 自动重试 + 面板可视化</li>
+                <li><strong>[通用]</strong> 企业微信推送（可选）+ Token 状态提醒</li>
+                <li><strong>[SZU]</strong> 多场馆支持，适配校内/校外访问</li>
+                <li><strong>[HZAU]</strong> 盲打预加载 + 服务器校时（可选），提升开抢命中率</li>
             </ul>
         </div>
 
@@ -443,7 +469,7 @@
         </div>
 
         <footer class="footer">
-            <div>地点：深圳大学 粤海 / 丽湖校区</div>
+            <div>支持：深圳大学（SZU） / 华中农业大学（HZAU）</div>
             <div style="margin-top: 10px;">
                 由 <span style="color:var(--acid-red)">ZSKFREE</span> 开发 // 开源项目
             </div>
