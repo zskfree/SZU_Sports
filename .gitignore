@@ -26,3 +26,5 @@ build/
 # 临时文件
 *.tmp
 .cache/
+
+docs/assets/img/wechatgroup.jpg

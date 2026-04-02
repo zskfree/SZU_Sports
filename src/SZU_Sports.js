@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动预约
 // @namespace    http://tampermonkey.net/
-// @version      1.2.4
+// @version      1.2.5
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -58,7 +58,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.2.4',
+        version: '1.2.5',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -502,6 +502,21 @@
         YYLX: "1.0"
     };
 
+    const DEFAULT_GROUP_PROMO = {
+        ENABLED: true,
+        TITLE: '🏸 羽毛球交流群',
+        DESCRIPTION: '扫码进群，找人约球，可以拉朋友一起来哦！',
+        QR_IMAGE_URL: 'https://i.ibb.co/YB7dLcPT/wechatgroup.jpg',
+        JOIN_LINK: '',
+        UPDATED_AT: '2026-04-02',
+        QR_IMAGE_DATA: ''
+    };
+
+    function loadGroupPromo() {
+        return { ...DEFAULT_GROUP_PROMO };
+    }
+
+
     function loadConfig() {
         const saved = Storage.get('bookingConfig', null);
         const config = saved ? { ...DEFAULT_CONFIG, ...saved } : DEFAULT_CONFIG;
@@ -612,6 +627,7 @@
 
     // ==================== 全局变量 ====================
     let CONFIG = loadConfig();
+    let GROUP_PROMO = loadGroupPromo();
     let isRunning = false;
     let retryCount = 0;
     let startTime = null;
@@ -620,6 +636,7 @@
     let floatingButton = null;
     let isPanelVisible = Storage.get('panelVisible', true);
     let countdownInterval = null; // 倒计时更新定时器
+    let groupQrModal = null;
 
     function getMaxBookings() {
         return Math.min(CONFIG.PREFERRED_TIMES.length, 2);
@@ -707,7 +724,7 @@
 
         panel.innerHTML = `
         <div style="margin-bottom:15px;text-align:center;position:relative;">
-            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动预约助手 v1.2.4</h3>
+            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动预约助手 v1.2.5</h3>
             <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
             <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
         </div>
@@ -765,6 +782,32 @@
                 <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏰ 请求超时(秒):</label>
                 <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${Styles.input}">
             </div>
+
+            <div style="display:none;margin-bottom:12px;background:rgba(0,0,0,0.15);padding:10px;border-radius:6px;">
+                <div style="font-size:${Device.isMobile ? '14px' : '12px'};font-weight:bold;margin-bottom:6px;">📣 社群运营</div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:${Device.isMobile ? '13px' : '12px'};margin-bottom:8px;">
+                    <input id="group-promo-enabled" type="checkbox" ${GROUP_PROMO.ENABLED ? 'checked' : ''} style="transform:scale(1.1);">
+                    启用“加入羽毛球群”入口
+                </label>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">社群标题:</label>
+                    <input id="group-promo-title" type="text" value="${GROUP_PROMO.TITLE}" style="${Styles.input}">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">文案说明:</label>
+                    <input id="group-promo-desc" type="text" value="${GROUP_PROMO.DESCRIPTION}" style="${Styles.input}">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">备用加群链接(可选):</label>
+                    <input id="group-promo-link" type="url" value="${GROUP_PROMO.JOIN_LINK}" placeholder="https://..." style="${Styles.input}">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">二维码图片地址(可选,用于后续运营替换):</label>
+                    <input id="group-promo-image-url" type="url" value="${GROUP_PROMO.QR_IMAGE_URL}" placeholder="https://.../group_qr.png" style="${Styles.input}">
+                </div>
+                <div style="font-size:${Device.isMobile ? '12px' : '10px'};opacity:0.85;">上次更新: <span id="group-promo-updated">${GROUP_PROMO.UPDATED_AT}</span></div>
+            </div>
+
             <button id="save-config" style="${Styles.button}background:linear-gradient(45deg,#4caf50,#45a049);color:white;font-size:${Device.isMobile ? '16px' : '14px'};margin-bottom:10px;">💾 保存配置</button>
         </div>
     
@@ -796,8 +839,12 @@
             <div id="countdown-display" style="font-size:${Device.isMobile ? '14px' : '12px'};margin-top:8px;text-align:center;color:#ffd700;font-weight:bold;">未设置定时任务</div>
         </div>
     
-        <div style="margin-bottom:15px;">
+        <div style="margin-bottom:12px;">
             <button id="start-btn" style="${Styles.button}background:linear-gradient(45deg,#ff6b6b,#ee5a52);color:white;">🚀 开始预约</button>
+        </div>
+
+        <div id="group-entry-wrapper" style="margin-bottom:15px;display:block;">
+            <button id="open-group-qr-btn" style="${Styles.button}background:linear-gradient(45deg,#00b894,#00a884);color:white;">💬 加入羽毛球群</button>
         </div>
     
         <div id="status-area" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;font-size:${Device.isMobile ? '14px' : '12px'};max-height:${Device.isMobile ? '250px' : '200px'};overflow-y:auto;border:1px solid rgba(255,255,255,0.1);">
@@ -825,6 +872,69 @@
 
         bindEvents(panel);
         return panel;
+    }
+
+
+
+    function getGroupQrSrc() {
+        return (GROUP_PROMO.QR_IMAGE_URL || '').trim() || GROUP_PROMO.QR_IMAGE_DATA;
+    }
+
+    function ensureGroupQrModal() {
+        if (groupQrModal) return groupQrModal;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'group-qr-modal';
+        overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10002;display:none;align-items:center;justify-content:center;padding:20px;`;
+
+        overlay.innerHTML = `
+            <div style="width:min(92vw,420px);background:white;border-radius:14px;padding:16px;box-shadow:0 12px 36px rgba(0,0,0,0.3);color:#222;position:relative;text-align:center;">
+                <button id="group-qr-close" style="position:absolute;right:8px;top:8px;width:30px;height:30px;border:none;border-radius:50%;background:#eee;cursor:pointer;font-size:18px;">×</button>
+                <div id="group-qr-title" style="font-size:18px;font-weight:bold;margin-top:6px;">${GROUP_PROMO.TITLE}</div>
+                <div id="group-qr-desc" style="margin:8px 0 12px;color:#666;font-size:13px;">${GROUP_PROMO.DESCRIPTION}</div>
+                <img id="group-qr-image" src="${getGroupQrSrc()}" alt="羽毛球群二维码" style="width:min(78vw,300px);height:auto;border-radius:8px;border:1px solid #eee;">
+                <div id="group-qr-updated" style="margin-top:8px;font-size:12px;color:#888;">二维码更新于 ${GROUP_PROMO.UPDATED_AT}</div>
+                <a id="group-qr-link" target="_blank" rel="noopener noreferrer" style="display:${GROUP_PROMO.JOIN_LINK ? 'inline-block' : 'none'};margin-top:10px;color:#1e88e5;font-size:13px;word-break:break-all;">打不开二维码？点此加入</a>
+            </div>
+        `;
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.style.display = 'none';
+        });
+
+        overlay.querySelector('#group-qr-close').addEventListener('click', () => {
+            overlay.style.display = 'none';
+        });
+
+        document.body.appendChild(overlay);
+        groupQrModal = overlay;
+        return groupQrModal;
+    }
+
+    function openGroupQrModal() {
+        const modal = ensureGroupQrModal();
+        modal.querySelector('#group-qr-title').textContent = GROUP_PROMO.TITLE;
+        modal.querySelector('#group-qr-desc').textContent = GROUP_PROMO.DESCRIPTION;
+        modal.querySelector('#group-qr-updated').textContent = `二维码更新于 ${GROUP_PROMO.UPDATED_AT}`;
+
+        const linkEl = modal.querySelector('#group-qr-link');
+        if ((GROUP_PROMO.JOIN_LINK || '').trim()) {
+            linkEl.style.display = 'inline-block';
+            linkEl.href = GROUP_PROMO.JOIN_LINK.trim();
+            linkEl.textContent = GROUP_PROMO.JOIN_LINK.trim();
+        } else {
+            linkEl.style.display = 'none';
+        }
+
+        const imageEl = modal.querySelector('#group-qr-image');
+        imageEl.src = getGroupQrSrc();
+        imageEl.onerror = () => {
+            imageEl.onerror = null;
+            imageEl.src = GROUP_PROMO.QR_IMAGE_DATA;
+            addLog('⚠️ 自定义二维码加载失败，已回退内置二维码', 'warning');
+        };
+
+        modal.style.display = 'flex';
     }
 
     function togglePanel() {
@@ -898,6 +1008,8 @@
         panel.querySelector('#sport-type').addEventListener('change', updateVenueDisplay);
         panel.querySelector('#campus').addEventListener('change', updateVenueDisplay);
 
+        Interaction.bind(panel.querySelector('#open-group-qr-btn'), openGroupQrModal);
+
 
         Interaction.bind(panel.querySelector('#save-config'), () => {
             updateConfigFromUI();
@@ -927,12 +1039,7 @@
                     return;
                 }
 
-                // 二次确认（可选）
-                const confirmMsg = `确认开始预约？\n日期: ${formatDateDisplay(CONFIG.TARGET_DATE)}\n项目: ${CONFIG.SPORT}\n校区: ${CONFIG.CAMPUS}\n时段: ${CONFIG.PREFERRED_TIMES.join(', ')}`;
-
-                if (Device.isMobile || confirm(confirmMsg)) {
-                    startBooking();
-                }
+                startBooking();
             }
         });
 
@@ -1070,9 +1177,11 @@
         };
 
         Storage.set('bookingConfig', CONFIG);
+
         updateProgress();
 
         addLog(`⚙️ 预约模式: ${CONFIG.YYLX === "2.0" ? "团体预约" : "单人散场"}`, 'info');
+        addLog(`📣 社群入口: ${GROUP_PROMO.ENABLED ? '已启用' : '已关闭'} | 更新时间: ${GROUP_PROMO.UPDATED_AT}`, 'info');
 
         if (shouldShowVenueSelection(sport, campus) && venue !== '全部') {
             addLog(`🏟️ 优先场馆: ${venue}`, 'info');
