@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <title>SZU & HZAU Sports | 自动预约助手</title>
@@ -25,80 +26,295 @@
             --font-mono: "SF Mono", "JetBrains Mono", "Menlo", monospace;
         }
 
-        * { box-sizing: border-box; }
-        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        body {
-            margin: 0; padding: 0; min-height: 100vh;
-            background-color: var(--color-bg); color: var(--color-text);
-            font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
-            display: flex; justify-content: center; align-items: flex-start;
+        * {
+            box-sizing: border-box;
         }
-        .container { width: 100%; max-width: 640px; padding: var(--space-xl) var(--space-md); }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-sans);
+            font-size: 15px;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 640px;
+            padding: var(--space-xl) var(--space-md);
+        }
 
         .brand {
-            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
-            color: var(--color-text-subtle); text-transform: uppercase;
-            margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            color: var(--color-text-subtle);
+            text-transform: uppercase;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
         }
-        .brand-line { flex: 1; height: 1px; background: var(--color-border); }
-        .brand-github { color: var(--color-text); display: flex; transition: transform 0.2s ease, color 0.2s ease; }
-        .brand-github:hover { color: var(--color-accent); transform: scale(1.15); }
 
-        h1 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin: 0 0 var(--space-md) 0; color: var(--color-text); line-height: 1.4; }
-        h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; margin: var(--space-lg) 0 var(--space-md); color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
+        .brand-line {
+            flex: 1;
+            height: 1px;
+            background: var(--color-border);
+        }
 
-        .desc { font-size: 14px; color: var(--color-text-muted); margin-bottom: var(--space-xl); line-height: 1.8; }
+        .brand-github {
+            color: var(--color-text);
+            display: flex;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .brand-github:hover {
+            color: var(--color-accent);
+            transform: scale(1.15);
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 26px;
+            font-weight: 400;
+            margin: 0 0 var(--space-md) 0;
+            color: var(--color-text);
+            line-height: 1.4;
+        }
+
+        h2 {
+            font-family: var(--font-serif);
+            font-size: 18px;
+            font-weight: 400;
+            margin: var(--space-lg) 0 var(--space-md);
+            color: var(--color-text);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 10px;
+        }
+
+        .desc {
+            font-size: 14px;
+            color: var(--color-text-muted);
+            margin-bottom: var(--space-xl);
+            line-height: 1.8;
+        }
 
         .section-label {
-            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
-            text-transform: uppercase; color: var(--color-text-muted);
-            margin-top: var(--space-lg); margin-bottom: var(--space-md); padding-bottom: var(--space-sm);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
             border-bottom: 1px solid var(--color-border);
         }
-        .section { margin-bottom: var(--space-xl); }
 
-        .btn-group { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
-        .btn-link, .btn-secondary-link, .btn-back {
-            display: block; width: 100%; padding: 14px; text-align: center;
-            font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em;
-            text-transform: uppercase; text-decoration: none; cursor: pointer;
+        .section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+        }
+
+        .btn-link,
+        .btn-secondary-link,
+        .btn-back {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            text-align: center;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
             transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
-        .btn-link { background: var(--color-accent); color: var(--color-surface); border: 1px solid var(--color-accent); }
-        .btn-link:hover { background: transparent; color: var(--color-accent); }
-        .btn-secondary-link, .btn-back { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
-        .btn-secondary-link:hover, .btn-back:hover { border-color: var(--color-border-strong); }
-        .btn-back { display: inline-block; width: auto; padding: 8px 16px; margin-bottom: var(--space-lg); font-size: 12px; }
 
-        ul.styled-list { list-style: none; padding: 0; margin: 0; }
-        ul.styled-list li { margin-bottom: var(--space-sm); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); }
-        ul.styled-list li:last-child { border-bottom: none; }
-        ul.styled-list strong { color: var(--color-text); font-weight: 500; margin-right: 8px;}
+        .btn-link {
+            background: var(--color-accent);
+            color: var(--color-surface);
+            border: 1px solid var(--color-accent);
+        }
+
+        .btn-link:hover {
+            background: transparent;
+            color: var(--color-accent);
+        }
+
+        .btn-secondary-link,
+        .btn-back {
+            background: transparent;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary-link:hover,
+        .btn-back:hover {
+            border-color: var(--color-border-strong);
+        }
+
+        .btn-back {
+            display: inline-block;
+            width: auto;
+            padding: 8px 16px;
+            margin-bottom: var(--space-lg);
+            font-size: 12px;
+        }
+
+        ul.styled-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.styled-list li {
+            margin-bottom: var(--space-sm);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+        }
+
+        ul.styled-list li:last-child {
+            border-bottom: none;
+        }
+
+        ul.styled-list strong {
+            color: var(--color-text);
+            font-weight: 500;
+            margin-right: 8px;
+        }
 
         .url-link {
-            display: block; padding: var(--space-md); margin-bottom: var(--space-sm);
-            border: 1px solid var(--color-border); cursor: pointer; transition: border-color 0.2s ease;
+            display: block;
+            padding: var(--space-md);
+            margin-bottom: var(--space-sm);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: border-color 0.2s ease;
         }
-        .url-link:hover { border-color: var(--color-border-strong); }
-        .url-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: var(--space-xs); font-family: var(--font-mono); }
-        .url-text { font-family: var(--font-mono); font-size: 13px; word-break: break-all; color: var(--color-text); }
 
-        .highlight { color: var(--color-text); font-weight: 500; }
-        a.highlight { text-decoration: none; border-bottom: 1px solid var(--color-border-strong); transition: border-color 0.2s ease; color: var(--color-text); font-weight: 500;}
-        a.highlight:hover { border-color: var(--color-accent); color: var(--color-accent); }
+        .url-link:hover {
+            border-color: var(--color-border-strong);
+        }
 
-        .step-content img { max-width: 100%; border: 1px solid var(--color-border); margin: var(--space-md) 0; display: block; padding: 4px; background: var(--color-surface); }
-        .step-content p { color: var(--color-text-muted); font-size: 14px; margin: 10px 0; }
-        .note { padding: var(--space-sm) var(--space-md); background: #f5f5f5; border-left: 2px solid var(--color-border-strong); font-size: 13px; color: var(--color-text-muted); margin: var(--space-md) 0; }
+        .url-label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: var(--space-xs);
+            font-family: var(--font-mono);
+        }
 
-        #copyNotification { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--color-accent); color: var(--color-surface); padding: 12px 24px; font-size: 13px; font-family: var(--font-sans); z-index: 10002; }
+        .url-text {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            word-break: break-all;
+            color: var(--color-text);
+        }
 
-        .footer { margin-top: var(--space-xl); padding-top: var(--space-md); border-top: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 11px; color: var(--color-text-subtle); letter-spacing: 0.05em; text-align: center; }
+        .highlight {
+            color: var(--color-text);
+            font-weight: 500;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .container > * { animation: fadeIn 0.6s ease-out backwards; }
-</style>
+        a.highlight {
+            text-decoration: none;
+            border-bottom: 1px solid var(--color-border-strong);
+            transition: border-color 0.2s ease;
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        a.highlight:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        .step-content img {
+            max-width: 100%;
+            border: 1px solid var(--color-border);
+            margin: var(--space-md) 0;
+            display: block;
+            padding: 4px;
+            background: var(--color-surface);
+        }
+
+        .step-content p {
+            color: var(--color-text-muted);
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .note {
+            padding: var(--space-sm) var(--space-md);
+            background: #f5f5f5;
+            border-left: 2px solid var(--color-border-strong);
+            font-size: 13px;
+            color: var(--color-text-muted);
+            margin: var(--space-md) 0;
+        }
+
+        #copyNotification {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-accent);
+            color: var(--color-surface);
+            padding: 12px 24px;
+            font-size: 13px;
+            font-family: var(--font-sans);
+            z-index: 10002;
+        }
+
+        .footer {
+            margin-top: var(--space-xl);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--color-border);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--color-text-subtle);
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container>* {
+            animation: fadeIn 0.6s ease-out backwards;
+        }
+    </style>
 </head>
+
 <body>
     <main class="container">
         <div class="brand">
@@ -106,7 +322,9 @@
             <div class="brand-line"></div>
             <a href="https://github.com/zskfree/SZU_Sports" target="_blank" class="brand-github" title="GitHub Project">
                 <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    <path fill-rule="evenodd"
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+                    </path>
                 </svg>
             </a>
         </div>
@@ -124,11 +342,13 @@
             <ul class="styled-list">
                 <li>
                     <strong>电脑端</strong>
-                    <br><span style="font-size:13px;">1. 安装 Tampermonkey 浏览器扩展<br>2. 查看 <a href="install_pc.html" class="highlight">电脑端图文教程</a><br>3. 打开下方预约入口即可开始</span>
+                    <br><span style="font-size:13px;">1. 安装 Tampermonkey 浏览器扩展<br>2. 查看 <a href="install_pc.html"
+                            class="highlight">电脑端图文教程</a><br>3. 打开下方预约入口即可开始</span>
                 </li>
                 <li>
                     <strong>手机端</strong>
-                    <br><span style="font-size:13px;">1. 安装 Via 浏览器 (极致轻量)<br>2. 查看 <a href="install_phone.html" class="highlight">手机端图文教程</a><br>3. 打开下方预约入口即可开始</span>
+                    <br><span style="font-size:13px;">1. 安装 Via 浏览器 (极致轻量)<br>2. 查看 <a href="install_phone.html"
+                            class="highlight">手机端图文教程</a><br>3. 打开下方预约入口即可开始</span>
                 </li>
             </ul>
         </section>
@@ -136,21 +356,28 @@
         <section class="section">
             <div class="section-label">脚本安装</div>
             <div class="btn-group">
-                <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动预约" target="_blank">⚡ SZU 安装脚本 (主站)</a>
-                <a class="btn-secondary-link" href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386" target="_blank">🚀 SZU 镜像安装 (国内直达)</a>
-                <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/561678-华中农业大学体育场馆自动预约" target="_blank">🏸 HZAU 安装脚本 (主站)</a>
-                <a class="btn-secondary-link" href="https://gfork.zh-tw.eu.org/zh-hans/scripts/561678" target="_blank">🚀 HZAU 镜像安装 (国内直达)</a>
-                <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank" style="border:none; border-bottom:1px solid var(--color-border); padding:10px 0;">GitHub 源码仓库</a>
+                <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/537386-深圳大学体育场馆自动预约" target="_blank">⚡
+                    SZU 安装脚本 (主站)</a>
+                <a class="btn-secondary-link" href="https://gfork.zh-tw.eu.org/zh-hans/scripts/537386"
+                    target="_blank">🚀 SZU 镜像安装 (国内直达)</a>
+                <a class="btn-link" href="https://greasyfork.org/zh-CN/scripts/561678-华中农业大学体育场馆自动预约" target="_blank">🏸
+                    HZAU 安装脚本 (主站)</a>
+                <a class="btn-secondary-link" href="https://gfork.zh-tw.eu.org/zh-hans/scripts/561678"
+                    target="_blank">🚀 HZAU 镜像安装 (国内直达)</a>
+                <a class="btn-secondary-link" href="https://github.com/zskfree/SZU_Sports" target="_blank"
+                    style="border:none; border-bottom:1px solid var(--color-border); padding:10px 0;">GitHub 源码仓库</a>
             </div>
         </section>
 
         <section class="section">
             <div class="section-label">SZU 预约入口</div>
-            <div class="url-link" onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#')">
+            <div class="url-link"
+                onclick="copyToClipboard('https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#')">
                 <div class="url-label">> 校园网直连 (校内) [点击复制链接]</div>
                 <div class="url-text">https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#</div>
             </div>
-            <div class="url-link" onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#')">
+            <div class="url-link"
+                onclick="copyToClipboard('https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#')">
                 <div class="url-label">> 校外访问通道 (WebVPN) [点击复制链接]</div>
                 <div class="url-text">https://ehall-443.webvpn.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/index.do#</div>
             </div>
@@ -158,7 +385,8 @@
 
         <section class="section">
             <div class="section-label">HZAU 预约入口</div>
-            <div class="desc" style="font-size:13px; margin-bottom:12px;">安装方式与 SZU 版相同：先安装脚本，再打开入口登录并按面板提示选择场馆/日期/时段即可。</div>
+            <div class="desc" style="font-size:13px; margin-bottom:12px;">安装方式与 SZU 版相同：先安装脚本，再打开入口登录并按面板提示选择场馆/日期/时段即可。
+            </div>
             <div class="url-link" onclick="copyToClipboard('https://zhcg.hzau.edu.cn/')">
                 <div class="url-label">> 华农预约入口 [点击复制链接]</div>
                 <div class="url-text">https://zhcg.hzau.edu.cn/</div>
@@ -198,4 +426,5 @@
         }
     </script>
 </body>
+
 </html>
