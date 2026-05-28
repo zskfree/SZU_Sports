@@ -1,198 +1,164 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
-    <title>手机安装教程 | Sports Script ⚡</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>手机安装教程 | Sports Script</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         :root {
-            --bg-pure: #050505;
-            --text-main: #eaeaea;
-            --acid-green: #ccff00;
-            --acid-purple: #7000ff;
-            --acid-red: #ff0033;
-            --border-thick: 3px;
-            --shadow-offset: 6px;
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-muted: #737373;
+            --color-text-subtle: #a3a3a3;
+            --color-border: #e5e5e5;
+            --color-border-strong: #1a1a1a;
+            --color-accent: #1a1a1a;
+            --color-error: #991b1b;
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 24px;
+            --space-lg: 48px;
+            --space-xl: 80px;
+            --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+            --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+            --font-mono: "SF Mono", "JetBrains Mono", "Menlo", monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            border-radius: 0 !important;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body {
-            background-color: var(--bg-pure);
-            color: var(--text-main);
-            font-family: "Monaco", "PingFang SC", "Microsoft YaHei", monospace;
-            line-height: 1.6;
-            overflow-x: hidden;
+            margin: 0; padding: 0; min-height: 100vh;
+            background-color: var(--color-bg); color: var(--color-text);
+            font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+            display: flex; justify-content: center; align-items: flex-start;
         }
+        .container { width: 100%; max-width: 640px; padding: var(--space-xl) var(--space-md); }
 
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            border: var(--border-thick) solid var(--text-main);
-            background: var(--bg-pure);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--acid-purple);
-            position: relative;
+        .brand {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
+            color: var(--color-text-subtle); text-transform: uppercase;
+            margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);
         }
+        .brand-line { flex: 1; height: 1px; background: var(--color-border); }
 
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--acid-green);
-            text-shadow: 4px 4px 0 #000, 8px 8px 0 var(--acid-purple);
-            margin-bottom: 30px;
-            text-transform: uppercase;
+        h1 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin: 0 0 var(--space-md) 0; color: var(--color-text); line-height: 1.4; }
+        h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; margin: var(--space-lg) 0 var(--space-md); color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
+
+        .desc { font-size: 14px; color: var(--color-text-muted); margin-bottom: var(--space-xl); line-height: 1.8; }
+
+        .section-label {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--color-text-muted);
+            margin-top: var(--space-lg); margin-bottom: var(--space-md); padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--color-border);
         }
+        .section { margin-bottom: var(--space-xl); }
 
-        h2 {
-            background: var(--acid-green);
-            color: #000;
-            display: inline-block;
-            padding: 4px 15px;
-            font-weight: 900;
-            margin: 40px 0 20px 0;
-            font-size: 1.2rem;
+        .btn-group { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+        .btn-link, .btn-secondary-link, .btn-back {
+            display: block; width: 100%; padding: 14px; text-align: center;
+            font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em;
+            text-transform: uppercase; text-decoration: none; cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
+        .btn-link { background: var(--color-accent); color: var(--color-surface); border: 1px solid var(--color-accent); }
+        .btn-link:hover { background: transparent; color: var(--color-accent); }
+        .btn-secondary-link, .btn-back { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
+        .btn-secondary-link:hover, .btn-back:hover { border-color: var(--color-border-strong); }
+        .btn-back { display: inline-block; width: auto; padding: 8px 16px; margin-bottom: var(--space-lg); font-size: 12px; }
 
-        .step-content {
-            border: 2px solid var(--text-main);
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            margin-bottom: 20px;
+        ul.styled-list { list-style: none; padding: 0; margin: 0; }
+        ul.styled-list li { margin-bottom: var(--space-sm); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); }
+        ul.styled-list li:last-child { border-bottom: none; }
+        ul.styled-list strong { color: var(--color-text); font-weight: 500; margin-right: 8px;}
+
+        .url-link {
+            display: block; padding: var(--space-md); margin-bottom: var(--space-sm);
+            border: 1px solid var(--color-border); cursor: pointer; transition: border-color 0.2s ease;
         }
+        .url-link:hover { border-color: var(--color-border-strong); }
+        .url-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: var(--space-xs); font-family: var(--font-mono); }
+        .url-text { font-family: var(--font-mono); font-size: 13px; word-break: break-all; color: var(--color-text); }
 
-        .step-image {
-            width: 100%;
-            max-width: 400px;
-            border: 2px solid var(--text-main);
-            margin-top: 15px;
-            display: block;
-            transition: transform 0.3s ease;
-        }
+        .highlight { color: var(--color-text); font-weight: 500; }
+        a.highlight { text-decoration: none; border-bottom: 1px solid var(--color-border-strong); transition: border-color 0.2s ease; color: var(--color-text); font-weight: 500;}
+        a.highlight:hover { border-color: var(--color-accent); color: var(--color-accent); }
 
-        .step-image:hover {
-            transform: scale(1.02);
-            border-color: var(--acid-green);
-        }
+        .step-content img { max-width: 100%; border: 1px solid var(--color-border); margin: var(--space-md) auto; display: block; padding: 4px; background: var(--color-surface); }
+        .step-content p { color: var(--color-text-muted); font-size: 14px; margin: 10px 0; }
+        .note { padding: var(--space-sm) var(--space-md); background: #f5f5f5; border-left: 2px solid var(--color-border-strong); font-size: 13px; color: var(--color-text-muted); margin: var(--space-md) 0; }
 
-        .btn-back {
-            text-decoration: none;
-            padding: 12px 24px;
-            font-weight: 900;
-            background: var(--text-main);
-            color: #000;
-            display: inline-block;
-            margin-bottom: 30px;
-            border: var(--border-thick) solid #000;
-            box-shadow: 4px 4px 0 var(--acid-red);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        #copyNotification { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--color-accent); color: var(--color-surface); padding: 12px 24px; font-size: 13px; font-family: var(--font-sans); z-index: 10002; }
 
-        .btn-back:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 8px 8px 0 var(--acid-green);
-            background: var(--acid-purple);
-            color: #fff;
-        }
+        .footer { margin-top: var(--space-xl); padding-top: var(--space-md); border-top: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 11px; color: var(--color-text-subtle); letter-spacing: 0.05em; text-align: center; }
 
-        .highlight {
-            color: var(--acid-green);
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        a.highlight:hover,
-        .step-content a:hover {
-            background: var(--acid-green);
-            color: #000;
-            padding: 0 4px;
-        }
-
-        a {
-            color: var(--acid-green);
-            transition: all 0.2s ease;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 15px;
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .container > * { animation: fadeIn 0.6s ease-out backwards; }
+</style>
 </head>
-
 <body>
-    <div class="container">
+    <main class="container">
+        <div class="brand">
+            <span>SPORTS SCRIPT</span>
+            <div class="brand-line"></div>
+            <span>MOBILE GUIDE</span>
+        </div>
+
         <a href="index.html" class="btn-back">← 返回首页</a>
 
-        <header style="border-bottom: var(--border-thick) solid var(--text-main); padding-bottom: 20px;">
+        <header>
             <h1>手机端安装脚本教程（通用）</h1>
-            <p>本指南将手把手教你在手机上安装并运行预约脚本。</p>
-            <p style="margin-top: 10px; opacity: 0.8;">核心思路：安装支持脚本的浏览器 → 安装/导入对应学校脚本 → 打开该学校预约入口页面。
-            </p>
+            <div class="desc" style="margin-top: 10px;">
+                本指南将手把手教你在手机上安装并运行预约脚本。<br>
+                核心思路：安装支持脚本的浏览器 → 安装/导入对应学校脚本 → 打开该学校预约入口页面。
+            </div>
         </header>
 
-        <section id="step1">
+        <section class="section">
             <h2>01. 下载 Via 浏览器</h2>
             <div class="step-content">
                 <p>先在应用商店搜索并下载 <span class="highlight">Via 浏览器</span>。它是一款追求极简、极速的浏览器，非常适合运行 Tampermonkey 脚本。</p>
-                <img src="assets/img/via.jpg" alt="Via 浏览器图标" class="step-image">
+                <img src="assets/img/via.jpg" alt="Via 浏览器图标" style="max-width:200px;">
             </div>
         </section>
 
-        <section id="step2">
+        <section class="section">
             <h2>02. 访问安装页面</h2>
             <div class="step-content">
-                <p>使用 Via 浏览器打开 <span class="highlight">脚本介绍首页（建议先看完后续的步骤再点击打开这个网址）</span>  <a href="https://www.zskksz.asia/SZU_Sports/">https://www.zskksz.asia/SZU_Sports/</a></p>
+                <p>使用 Via 浏览器打开 <span class="highlight">脚本介绍首页</span>（建议先看完后续的步骤再点击打开这个网址） <br><br> <a href="https://www.zskksz.asia/SZU_Sports/" class="highlight" target="_blank" style="word-break: break-all;">https://www.zskksz.asia/SZU_Sports/</a></p>
             </div>
         </section>
 
-        <section id="step3">
+        <section class="section">
             <h2>03. 安装脚本</h2>
             <div class="step-content">
                 <p>1. 在安装页选择你要使用的脚本，点击对应的 <span class="highlight">安装按钮</span>（例如“主站安装 / 镜像安装”，哪个能打开就用哪个，国内一般使用镜像安装）。</p>
-                <img src="assets/img/手机1.png" alt="镜像安装按钮" class="step-image">
-
-                <p style="margin-top: 20px;">2. 在脚本托管页面点击"<span class="highlight">安装此脚本</span>"，等待加载。</p>
-                <img src="assets/img/手机2.jpg" alt="安装此脚本页面" class="step-image">
-
-                <p style="margin-top: 20px;">3. 在 Via 浏览器弹出的确认页面点击"<span class="highlight">安装</span>"按钮。</p>
-                <img src="assets/img/手机3.jpg" alt="安装成功提示1" class="step-image">
-                <img src="assets/img/手机4.jpg" alt="安装成功提示2" class="step-image">
-
+                <img src="assets/img/手机1.png" alt="镜像安装按钮" style="max-width:300px;">
+                <p>2. 在脚本托管页面点击"<span class="highlight">安装此脚本</span>"，等待加载。</p>
+                <img src="assets/img/手机2.jpg" alt="安装此脚本页面" style="max-width:300px;">
+                <p>3. 在 Via 浏览器弹出的确认页面点击"<span class="highlight">安装</span>"按钮。</p>
+                <img src="assets/img/手机3.jpg" alt="安装成功提示1" style="max-width:300px;">
+                <img src="assets/img/手机4.jpg" alt="安装成功提示2" style="max-width:300px;">
             </div>
         </section>
 
-        <section id="step4">
+        <section class="section">
             <h2>04. 开始使用</h2>
             <div class="step-content">
                 <p>1. 返回脚本安装页/项目首页（或你新增学校的聚合首页）</p>
                 <p>2. 找到<span class="highlight">预约入口</span>，点击对应的链接，地址会自动复制。</p>
-                <img src="assets/img/手机5.jpg" alt="复制链接" class="step-image">
-
-                <p style="margin-top: 20px;">3. 在 Via 浏览器搜索栏粘贴链接并打开，即可看到脚本界面并开始预约。</p>
-                <img src="assets/img/手机6.png" alt="使用界面" class="step-image">
-
-                <p style="margin-top: 20px; opacity: 0.85;">如果打开后没有看到脚本界面：请确认脚本已启用、脚本已成功安装，并且当前打开的页面域名与脚本匹配的预约入口一致。</p>
+                <img src="assets/img/手机5.png" alt="复制链接" style="max-width:300px;">
+                <p>3. 在 Via 浏览器搜索栏粘贴链接并打开，即可看到脚本界面并开始预约。</p>
+                <img src="assets/img/手机6.png" alt="使用界面" style="max-width:300px;">
+                <div class="note">如果打开后没有看到脚本界面：请确认脚本已启用、脚本已成功安装，并且当前打开的页面域名与脚本匹配的预约入口一致。</div>
             </div>
         </section>
 
-        <footer
-            style="margin-top: 60px; padding-top: 20px; border-top: 1px dashed var(--text-main); text-align: center; font-size: 0.8rem; opacity: 0.6;">
+        <footer class="footer">
             Sports Script Mobile Installation Guide // Crafted by ZSKFREE
         </footer>
-    </div>
+    </main>
 </body>
-
 </html>

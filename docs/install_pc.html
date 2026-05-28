@@ -1,225 +1,173 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>电脑安装教程 | Sports Script ⚡</title>
+    <title>电脑安装教程 | Sports Script</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         :root {
-            --bg-pure: #050505;
-            --text-main: #eaeaea;
-            --acid-green: #ccff00;
-            --acid-purple: #7000ff;
-            --acid-red: #ff0033;
-            --border-thick: 3px;
-            --shadow-offset: 6px;
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-muted: #737373;
+            --color-text-subtle: #a3a3a3;
+            --color-border: #e5e5e5;
+            --color-border-strong: #1a1a1a;
+            --color-accent: #1a1a1a;
+            --color-error: #991b1b;
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 24px;
+            --space-lg: 48px;
+            --space-xl: 80px;
+            --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+            --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+            --font-mono: "SF Mono", "JetBrains Mono", "Menlo", monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            border-radius: 0 !important;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body {
-            background-color: var(--bg-pure);
-            color: var(--text-main);
-            font-family: "Monaco", "PingFang SC", "Microsoft YaHei", monospace;
-            line-height: 1.6;
-            overflow-x: hidden;
+            margin: 0; padding: 0; min-height: 100vh;
+            background-color: var(--color-bg); color: var(--color-text);
+            font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+            display: flex; justify-content: center; align-items: flex-start;
         }
+        .container { width: 100%; max-width: 640px; padding: var(--space-xl) var(--space-md); }
 
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            border: var(--border-thick) solid var(--text-main);
-            background: var(--bg-pure);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--acid-purple);
-            position: relative;
+        .brand {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
+            color: var(--color-text-subtle); text-transform: uppercase;
+            margin-bottom: var(--space-lg); display: flex; align-items: center; gap: var(--space-sm);
         }
+        .brand-line { flex: 1; height: 1px; background: var(--color-border); }
 
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--acid-green);
-            text-shadow: 4px 4px 0 #000, 8px 8px 0 var(--acid-purple);
-            margin-bottom: 30px;
-            text-transform: uppercase;
+        h1 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin: 0 0 var(--space-md) 0; color: var(--color-text); line-height: 1.4; }
+        h2 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; margin: var(--space-lg) 0 var(--space-md); color: var(--color-text); border-bottom: 1px solid var(--color-border); padding-bottom: 10px; }
+
+        .desc { font-size: 14px; color: var(--color-text-muted); margin-bottom: var(--space-xl); line-height: 1.8; }
+
+        .section-label {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--color-text-muted);
+            margin-top: var(--space-lg); margin-bottom: var(--space-md); padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--color-border);
         }
+        .section { margin-bottom: var(--space-xl); }
 
-        h2 {
-            background: var(--acid-green);
-            color: #000;
-            display: inline-block;
-            padding: 4px 15px;
-            font-weight: 900;
-            margin: 40px 0 20px 0;
-            font-size: 1.2rem;
+        .btn-group { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+        .btn-link, .btn-secondary-link, .btn-back {
+            display: block; width: 100%; padding: 14px; text-align: center;
+            font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em;
+            text-transform: uppercase; text-decoration: none; cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
+        .btn-link { background: var(--color-accent); color: var(--color-surface); border: 1px solid var(--color-accent); }
+        .btn-link:hover { background: transparent; color: var(--color-accent); }
+        .btn-secondary-link, .btn-back { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
+        .btn-secondary-link:hover, .btn-back:hover { border-color: var(--color-border-strong); }
+        .btn-back { display: inline-block; width: auto; padding: 8px 16px; margin-bottom: var(--space-lg); font-size: 12px; }
 
-        .step-content {
-            border: 2px solid var(--text-main);
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            margin-bottom: 20px;
+        ul.styled-list { list-style: none; padding: 0; margin: 0; }
+        ul.styled-list li { margin-bottom: var(--space-sm); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); }
+        ul.styled-list li:last-child { border-bottom: none; }
+        ul.styled-list strong { color: var(--color-text); font-weight: 500; margin-right: 8px;}
+
+        .url-link {
+            display: block; padding: var(--space-md); margin-bottom: var(--space-sm);
+            border: 1px solid var(--color-border); cursor: pointer; transition: border-color 0.2s ease;
         }
+        .url-link:hover { border-color: var(--color-border-strong); }
+        .url-label { font-size: 12px; color: var(--color-text-muted); margin-bottom: var(--space-xs); font-family: var(--font-mono); }
+        .url-text { font-family: var(--font-mono); font-size: 13px; word-break: break-all; color: var(--color-text); }
 
-        .step-image {
-            width: 100%;
-            max-width: 600px;
-            border: 2px solid var(--text-main);
-            margin-top: 15px;
-            display: block;
-            transition: transform 0.3s ease;
-        }
+        .highlight { color: var(--color-text); font-weight: 500; }
+        a.highlight { text-decoration: none; border-bottom: 1px solid var(--color-border-strong); transition: border-color 0.2s ease; color: var(--color-text); font-weight: 500;}
+        a.highlight:hover { border-color: var(--color-accent); color: var(--color-accent); }
 
-        .step-image:hover {
-            transform: scale(1.02);
-            border-color: var(--acid-green);
-        }
+        .step-content img { max-width: 100%; border: 1px solid var(--color-border); margin: var(--space-md) auto; display: block; padding: 4px; background: var(--color-surface); }
+        .step-content p { color: var(--color-text-muted); font-size: 14px; margin: 10px 0; }
+        .note { padding: var(--space-sm) var(--space-md); background: #f5f5f5; border-left: 2px solid var(--color-border-strong); font-size: 13px; color: var(--color-text-muted); margin: var(--space-md) 0; }
 
-        .btn-back {
-            text-decoration: none;
-            padding: 12px 24px;
-            font-weight: 900;
-            background: var(--text-main);
-            color: #000;
-            display: inline-block;
-            margin-bottom: 30px;
-            border: var(--border-thick) solid #000;
-            box-shadow: 4px 4px 0 var(--acid-red);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        #copyNotification { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--color-accent); color: var(--color-surface); padding: 12px 24px; font-size: 13px; font-family: var(--font-sans); z-index: 10002; }
 
-        .btn-back:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 8px 8px 0 var(--acid-green);
-            background: var(--acid-purple);
-            color: #fff;
-        }
+        .footer { margin-top: var(--space-xl); padding-top: var(--space-md); border-top: 1px solid var(--color-border); font-family: var(--font-mono); font-size: 11px; color: var(--color-text-subtle); letter-spacing: 0.05em; text-align: center; }
 
-        .highlight {
-            color: var(--acid-green);
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        a.highlight:hover,
-        .step-content a:hover {
-            background: var(--acid-green);
-            color: #000;
-            padding: 0 4px;
-        }
-
-        a {
-            color: var(--acid-green);
-            transition: all 0.2s ease;
-        }
-
-        .note {
-            border-left: 4px solid var(--acid-red);
-            padding: 10px 15px;
-            background: rgba(255, 0, 51, 0.1);
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 15px;
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .container > * { animation: fadeIn 0.6s ease-out backwards; }
+</style>
 </head>
-
 <body>
-    <div class="container">
+    <main class="container">
+        <div class="brand">
+            <span>SPORTS SCRIPT</span>
+            <div class="brand-line"></div>
+            <span>PC GUIDE</span>
+        </div>
+
         <a href="index.html" class="btn-back">← 返回首页</a>
 
-        <header style="border-bottom: var(--border-thick) solid var(--text-main); padding-bottom: 20px;">
+        <header>
             <h1>电脑端安装脚本教程（通用）</h1>
-            <p>本指南将详细介绍如何在 PC 浏览器上配置 Tampermonkey 并安装/运行脚本。</p>
-            <p style="margin-top: 10px; opacity: 0.8;">核心思路：安装 Tampermonkey → 安装脚本（主站/镜像/文件导入）→ 打开对应学校的预约入口页面。</p>
+            <div class="desc" style="margin-top: 10px;">
+                本指南将详细介绍如何在 PC 浏览器上配置 Tampermonkey 并安装/运行脚本。<br>
+                核心思路：安装 Tampermonkey → 安装脚本（主站/镜像/文件导入）→ 打开对应学校的预约入口页面。
+            </div>
         </header>
 
-        <section id="step1">
+        <section class="section">
             <h2>01. 安装 Tampermonkey 扩展</h2>
             <div class="step-content">
-                <div class="note">
-                    <strong>提示：</strong> 以下以 Microsoft Edge 为例，Chrome / Firefox 等浏览器操作流程基本一致。
-                </div>
-
+                <div class="note"><strong>提示：</strong> 以下以 Microsoft Edge 为例，Chrome / Firefox 等浏览器操作流程基本一致。</div>
                 <p>1. <strong>打开扩展管理页面</strong>：在浏览器地址栏输入 <span class="highlight">edge://extensions/</span> 或通过菜单进入。</p>
-                <img src="assets/img/电脑1.png" alt="打开扩展管理" class="step-image">
-
-                <p style="margin-top: 20px;">2. <strong>启用开发者模式</strong>：确保右上角的<span
-                        class="highlight">“开发人员模式”</span>开关已开启。</p>
-                <img src="assets/img/电脑2.png" alt="启用开发者模式" class="step-image">
-
-                <p style="margin-top: 20px;">3. <strong>进入扩展商店</strong>：点击“获取 Microsoft Edge 扩展”。</p>
-                <img src="assets/img/电脑3.png" alt="进入商店" class="step-image">
-
-                <p style="margin-top: 20px;">4. <strong>搜索并安装</strong>：搜索 <span
-                        class="highlight">Tampermonkey</span>，点击“获取”并确认添加。</p>
-                <img src="assets/img/电脑4.png" alt="搜索" class="step-image">
-                <img src="assets/img/电脑5.png" alt="确认安装" class="step-image" style="margin-top: 10px;">
+                <img src="assets/img/电脑1.png" alt="打开扩展管理">
+                <p>2. <strong>启用开发者模式</strong>：确保右上角的<span class="highlight">“开发人员模式”</span>开关已开启。</p>
+                <img src="assets/img/电脑2.png" alt="启用开发者模式">
+                <p>3. <strong>进入扩展商店</strong>：点击“获取 Microsoft Edge 扩展”。</p>
+                <img src="assets/img/电脑3.png" alt="进入商店">
+                <p>4. <strong>搜索并安装</strong>：搜索 <span class="highlight">Tampermonkey</span>，点击“获取”并确认添加。</p>
+                <img src="assets/img/电脑4.png" alt="搜索">
+                <img src="assets/img/电脑5.png" alt="确认安装">
             </div>
         </section>
 
-        <section id="step2">
+        <section class="section">
             <h2>02. 安装脚本</h2>
             <div class="step-content">
-                <p>1. <strong>访问安装页面</strong>：打开脚本介绍首页（建议先看完后续的步骤再点击打开这个网址） <a href="https://www.zskksz.asia/SZU_Sports/">https://www.zskksz.asia/SZU_Sports/</a></p>
-                <p style="margin-top: 10px;">2. <strong>开始安装</strong>：在页面中选择你需要的脚本，点击“主站安装 / 镜像安装”等按钮（哪个能打开用哪个，国内一般使用镜像安装），随后在跳转页面点击<span
-                        class="highlight">“安装此脚本”</span>。</p>
-                <img src="assets/img/电脑6.png" alt="点击镜像安装" class="step-image">
-                <img src="assets/img/电脑7.png" alt="点击安装此脚本" class="step-image" style="margin-top: 10px;">
-
-                <p style="margin-top: 20px;">3. <strong>最终确认</strong>：在弹出的安装确认页面点击<span class="highlight">“安装”</span>按钮。
-                </p>
-                <img src="assets/img/电脑8.png" alt="最终安装确认" class="step-image">
+                <p>1. <strong>访问安装页面</strong>：打开脚本介绍首页（建议先看完后续的步骤再点击打开这个网址） <a href="https://www.zskksz.asia/SZU_Sports/" class="highlight" target="_blank">https://www.zskksz.asia/SZU_Sports/</a></p>
+                <p>2. <strong>开始安装</strong>：在页面中选择你需要的脚本，点击“主站安装 / 镜像安装”等按钮（哪个能打开用哪个，国内一般使用镜像安装），随后在跳转页面点击<span class="highlight">“安装此脚本”</span>。</p>
+                <img src="assets/img/电脑6.png" alt="点击镜像安装">
+                <img src="assets/img/电脑7.png" alt="点击安装此脚本">
+                <p>3. <strong>最终确认</strong>：在弹出的安装确认页面点击<span class="highlight">“安装”</span>按钮。</p>
+                <img src="assets/img/电脑8.png" alt="最终安装确认">
             </div>
         </section>
 
-        <section id="step3">
+        <section class="section">
             <h2>03. 使用与验证</h2>
             <div class="step-content">
                 <p>1. <strong>复制链接</strong>：回到脚本安装页/项目首页，点击“预约入口”中的链接，地址将自动复制。</p>
-                <img src="assets/img/电脑9.png" alt="复制链接" class="step-image">
-
-                <p style="margin-top: 20px;">2. <strong>打开页面</strong>：在新标签页粘贴并访问。如果看到如下界面，说明脚本已成功运行！</p>
-                <img src="assets/img/电脑10.png" alt="脚本运行验证" class="step-image">
-
-                <div class="note" style="margin-top: 20px;">
-                    <strong>排查：</strong>如果没有加载脚本面板，请检查：Tampermonkey 是否启用、脚本是否已安装且已开启、以及当前打开页面是否为该脚本匹配的预约入口域名。
-                </div>
+                <img src="assets/img/电脑9.png" alt="复制链接">
+                <p>2. <strong>打开页面</strong>：在新标签页粘贴并访问。如果看到如下界面，说明脚本已成功运行！</p>
+                <img src="assets/img/电脑10.png" alt="脚本运行验证">
+                <div class="note"><strong>排查：</strong>如果没有加载脚本面板，请检查：Tampermonkey 是否启用、脚本是否已安装且已开启、以及当前打开页面是否为该脚本匹配的预约入口域名。</div>
             </div>
         </section>
 
-        <section id="faq">
+        <section class="section">
             <h2>常见问题 FAQ</h2>
             <div class="step-content">
                 <p><strong>Q: 其他浏览器如何安装？</strong></p>
-                <p>A: Chrome、Firefox 等浏览器均支持 Tampermonkey，请前往各自对应的应用商店搜索安装即可。</p>
-                <br>
+                <p style="margin-bottom: 20px;">A: Chrome、Firefox 等浏览器均支持 Tampermonkey，请前往各自对应的应用商店搜索安装即可。</p>
                 <p><strong>Q: 脚本没有加载出来？</strong></p>
                 <p>A: 请检查是否开启了“开发者模式”，并确保 Tampermonkey 扩展处于启用状态。</p>
             </div>
         </section>
 
-        <footer
-            style="margin-top: 60px; padding-top: 20px; border-top: 1px dashed var(--text-main); text-align: center; font-size: 0.8rem; opacity: 0.6;">
+        <footer class="footer">
             Sports Script PC Installation Guide // Crafted by ZSKFREE
         </footer>
-    </div>
+    </main>
 </body>
-
 </html>
