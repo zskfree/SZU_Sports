@@ -8,7 +8,7 @@
 
 一组 Tampermonkey 用户脚本，用于自动化预约深圳大学（SZU）和华中农业大学（HZAU）体育场馆。支持 iOS、Android 及桌面端，提供智能预约、定时重试、限频控制及企业微信推送通知。
 
-👉 **SZU 教程与安装**：<https://www.zskksz.asia/SZU_Sports/>
+👉 **SZU 教程与安装**：<https://www.280468.xyz/SZU_Sports/>
 
 ---
 
@@ -39,7 +39,7 @@
 ## SZU 版（深圳大学）
 
 - **核心脚本**：见 [src/SZU_Sports.js](src/SZU_Sports.js)。
-- **安装与教程**：访问 <https://www.zskksz.asia/SZU_Sports/> 获取桌面端和手机端图文引导。
+- **安装与教程**：访问 <https://www.280468.xyz/SZU_Sports/> 获取桌面端和手机端图文引导。
 
 ### 版本更新（v1.2.5）
 
