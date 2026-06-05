@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         深圳大学体育场馆自动预约
 // @namespace    http://tampermonkey.net/
-// @version      1.2.6
+// @version      1.2.7
 // @description  深圳大学体育场馆自动预约脚本 - iOS、安卓、移动端、桌面端完全兼容
 // @author       zskfree
 // @match        https://ehall.szu.edu.cn/qljfwapp/sys/lwSzuCgyy/*
@@ -37,20 +37,357 @@
         };
     })();
 
+    // ==================== 主题管理器 ====================
+    const ThemeManager = {
+        init() {
+            if (document.getElementById('szu-theme-style')) return;
+            const style = document.createElement('style');
+            style.id = 'szu-theme-style';
+            style.textContent = `
+                :root {
+                    --szu-bg-panel: #ffffff;
+                    --szu-bg-secondary: #fafaf9;
+                    --szu-bg-hover: #f5f5f4;
+                    --szu-text-main: #1a1a1a;
+                    --szu-text-secondary: #404040;
+                    --szu-text-muted: #737373;
+                    --szu-text-subtle: #a3a3a3;
+                    --szu-border: #e5e5e5;
+                    --szu-border-strong: #d4d4d4;
+                    --szu-btn-primary-bg: #1a1a1a;
+                    --szu-btn-primary-text: #ffffff;
+                    --szu-btn-stop-bg: #991b1b;
+                    --szu-focus-ring: rgba(26, 26, 26, 0.14);
+                    --szu-shadow-soft: 0 12px 40px rgba(0,0,0,0.15);
+                    --szu-shadow-lift: 0 16px 44px rgba(0,0,0,0.18);
+                    --szu-motion-ease: cubic-bezier(.22, 1, .36, 1);
+
+                    /* Logs */
+                    --szu-log-info-color: #404040;
+                    --szu-log-info-bg: transparent;
+                    --szu-log-info-border: #d4d4d4;
+                    --szu-log-success-color: #166534;
+                    --szu-log-success-bg: #f0fdf4;
+                    --szu-log-success-border: #bbf7d0;
+                    --szu-log-warning-color: #9a3412;
+                    --szu-log-warning-bg: #fff7ed;
+                    --szu-log-warning-border: #ffedd5;
+                    --szu-log-error-color: #991b1b;
+                    --szu-log-error-bg: #fef2f2;
+                    --szu-log-error-border: #fecaca;
+                }
+                .szu-dark {
+                    --szu-bg-panel: #171717;
+                    --szu-bg-secondary: #262626;
+                    --szu-bg-hover: #333333;
+                    --szu-text-main: #f5f5f5;
+                    --szu-text-secondary: #d4d4d4;
+                    --szu-text-muted: #a3a3a3;
+                    --szu-text-subtle: #737373;
+                    --szu-border: #404040;
+                    --szu-border-strong: #525252;
+                    --szu-btn-primary-bg: #f5f5f5;
+                    --szu-btn-primary-text: #171717;
+                    --szu-btn-stop-bg: #ef4444;
+                    --szu-focus-ring: rgba(245, 245, 245, 0.16);
+                    --szu-shadow-soft: 0 12px 40px rgba(0,0,0,0.36);
+                    --szu-shadow-lift: 0 18px 48px rgba(0,0,0,0.42);
+
+                    /* Logs */
+                    --szu-log-info-color: #d4d4d4;
+                    --szu-log-info-bg: transparent;
+                    --szu-log-info-border: #525252;
+                    --szu-log-success-color: #4ade80;
+                    --szu-log-success-bg: rgba(22,101,52,0.25);
+                    --szu-log-success-border: #14532d;
+                    --szu-log-warning-color: #fb923c;
+                    --szu-log-warning-bg: rgba(154,52,18,0.25);
+                    --szu-log-warning-border: #7c2d12;
+                    --szu-log-error-color: #f87171;
+                    --szu-log-error-bg: rgba(153,27,27,0.25);
+                    --szu-log-error-border: #7f1d1d;
+                }
+                /* 暗黑模式表单组件强覆盖 */
+                .szu-dark input::-webkit-calendar-picker-indicator {
+                    filter: invert(1);
+                }
+                .szu-dark select option {
+                    background: var(--szu-bg-panel);
+                    color: var(--szu-text-main);
+                }
+                /* 统一滚动条样式 */
+                #auto-booking-panel,
+                #status-area,
+                .szu-floating-popover {
+                    scrollbar-width: thin;
+                    scrollbar-color: var(--szu-border-strong) transparent;
+                }
+                #auto-booking-panel::-webkit-scrollbar,
+                #status-area::-webkit-scrollbar,
+                .szu-floating-popover::-webkit-scrollbar {
+                    width: 7px;
+                    height: 7px;
+                }
+                #auto-booking-panel::-webkit-scrollbar-track,
+                #status-area::-webkit-scrollbar-track,
+                .szu-floating-popover::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                #auto-booking-panel::-webkit-scrollbar-thumb,
+                #status-area::-webkit-scrollbar-thumb,
+                .szu-floating-popover::-webkit-scrollbar-thumb {
+                    background: var(--szu-border-strong);
+                    background: color-mix(in srgb, var(--szu-border-strong) 72%, transparent);
+                    border: 2px solid transparent;
+                    border-radius: 999px;
+                    background-clip: padding-box;
+                }
+                #auto-booking-panel::-webkit-scrollbar-thumb:hover,
+                #status-area::-webkit-scrollbar-thumb:hover,
+                .szu-floating-popover::-webkit-scrollbar-thumb:hover {
+                    background: var(--szu-text-subtle);
+                    border: 2px solid transparent;
+                    background-clip: padding-box;
+                }
+                #auto-booking-panel {
+                    transition:
+                        opacity 0.24s var(--szu-motion-ease),
+                        transform 0.24s var(--szu-motion-ease),
+                        background-color 0.2s ease,
+                        border-color 0.2s ease,
+                        box-shadow 0.2s ease;
+                }
+                #auto-booking-panel.szu-panel-ready {
+                    will-change: opacity, transform;
+                }
+                #auto-booking-panel input,
+                #auto-booking-panel select,
+                #auto-booking-panel button,
+                #floating-toggle-btn,
+                .szu-chip,
+                .szu-section,
+                .szu-log-entry {
+                    transition:
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        color 0.18s ease,
+                        box-shadow 0.18s ease,
+                        transform 0.18s var(--szu-motion-ease),
+                        opacity 0.18s ease;
+                }
+                #auto-booking-panel input:focus,
+                #auto-booking-panel select:focus {
+                    border-color: var(--szu-text-muted) !important;
+                    box-shadow: 0 0 0 3px var(--szu-focus-ring);
+                    background: var(--szu-bg-panel) !important;
+                }
+                .szu-section {
+                    animation: szu-section-in 0.34s var(--szu-motion-ease) both;
+                }
+                .szu-section:nth-of-type(2) { animation-delay: 0.03s; }
+                .szu-section:nth-of-type(3) { animation-delay: 0.06s; }
+                .szu-section:nth-of-type(4) { animation-delay: 0.09s; }
+                .szu-log-entry {
+                    animation: szu-log-in 0.2s var(--szu-motion-ease) both;
+                }
+                .szu-quick-action {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    border: 1px solid var(--szu-border);
+                    background: var(--szu-bg-panel);
+                    color: var(--szu-text-main);
+                    cursor: pointer;
+                    font: inherit;
+                    text-align: left;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .szu-quick-line {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    line-height: 1.4;
+                    padding: 4px 6px;
+                    margin-left: -6px;
+                    border-radius: 6px;
+                    border-color: transparent;
+                    background: transparent;
+                    color: var(--szu-text-secondary);
+                }
+                .szu-quick-editor {
+                    display: none;
+                    margin-top: 0;
+                    padding: 12px;
+                    border: 1px solid var(--szu-border);
+                    border-radius: 8px;
+                    background: var(--szu-bg-panel);
+                    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+                    animation: szu-quick-in 0.2s var(--szu-motion-ease) both;
+                }
+                .szu-quick-editor.is-open {
+                    display: block;
+                }
+                .szu-quick-action.is-active {
+                    border-color: var(--szu-text-muted) !important;
+                    background: var(--szu-bg-hover) !important;
+                    color: var(--szu-text-main) !important;
+                }
+                .szu-quick-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
+                    margin-bottom: 10px;
+                    color: var(--szu-text-main);
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+                .szu-quick-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 8px;
+                }
+                .szu-quick-time {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 7px 8px;
+                    border: 1px solid var(--szu-border);
+                    border-radius: 6px;
+                    background: var(--szu-bg-secondary);
+                    color: var(--szu-text-secondary);
+                    font-size: 12px;
+                    cursor: pointer;
+                }
+                .szu-quick-time:has(input:checked) {
+                    border-color: var(--szu-text-muted);
+                    background: var(--szu-bg-hover);
+                    color: var(--szu-text-main);
+                }
+                .szu-floating-popover {
+                    display: none !important;
+                    position: fixed !important;
+                    z-index: 10003 !important;
+                    opacity: 0;
+                    pointer-events: none;
+                    transform: translateY(-6px) scale(0.98);
+                    transform-origin: top center;
+                    box-shadow: 0 18px 44px rgba(0,0,0,0.18);
+                    max-height: min(72vh, 640px);
+                    overflow-y: auto;
+                    margin: 0 !important;
+                    transition:
+                        opacity 0.16s ease,
+                        transform 0.2s var(--szu-motion-ease),
+                        background-color 0.18s ease,
+                        border-color 0.18s ease,
+                        color 0.18s ease;
+                }
+                .szu-floating-popover.is-open {
+                    display: block !important;
+                    opacity: 1;
+                    pointer-events: auto;
+                    transform: translateY(0) scale(1);
+                    animation: szu-popover-in 0.2s var(--szu-motion-ease) both;
+                }
+                .szu-floating-popover.szu-tips-content {
+                    padding: 12px !important;
+                    background: var(--szu-bg-panel) !important;
+                    border: 1px solid var(--szu-border) !important;
+                    border-radius: 8px !important;
+                }
+                @media (hover:hover) {
+                    #auto-booking-panel button:not(:disabled):hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+                    }
+                    .szu-chip:hover {
+                        transform: translateY(-1px);
+                        border-color: var(--szu-border-strong) !important;
+                    }
+                    .szu-quick-action:hover {
+                        transform: translateY(-1px);
+                        border-color: var(--szu-border-strong) !important;
+                        background: var(--szu-bg-hover) !important;
+                    }
+                }
+                @keyframes szu-section-in {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes szu-quick-in {
+                    from { opacity: 0; transform: translateY(-6px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes szu-popover-in {
+                    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+                @keyframes szu-log-in {
+                    from { opacity: 0; transform: translateX(8px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    #auto-booking-panel,
+                    #auto-booking-panel *,
+                    #floating-toggle-btn,
+                    .szu-section,
+                    .szu-log-entry {
+                        animation: none !important;
+                        transition: none !important;
+                        scroll-behavior: auto !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        },
+        toggle() {
+            const isDark = Storage.get('theme', 'light') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            Storage.set('theme', nextTheme);
+            this.apply(nextTheme);
+        },
+        apply(theme = Storage.get('theme', 'light')) {
+            const container = document.documentElement;
+            const panel = document.getElementById('auto-booking-panel');
+            const btn = document.getElementById('floating-toggle-btn');
+            const toggleIcon = document.getElementById('toggle-theme');
+            const floatingPanels = ['config-area', 'quick-editor', 'tips-content']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+
+            const isDark = theme === 'dark';
+
+            if (panel) isDark ? panel.classList.add('szu-dark') : panel.classList.remove('szu-dark');
+            if (btn) isDark ? btn.classList.add('szu-dark') : btn.classList.remove('szu-dark');
+            floatingPanels.forEach(el => isDark ? el.classList.add('szu-dark') : el.classList.remove('szu-dark'));
+            if (toggleIcon) toggleIcon.innerHTML = isDark ? I.sun(16) : I.moon(16);
+
+            // Apply variables specifically if needed over body
+            // but our CSS scoped to .szu-dark on the panel should be enough
+        }
+    };
+
     // ==================== 样式管理器 ====================
     const Styles = {
         getSize: (desktop, mobile, iPad) => Device.isIPad ? iPad : (Device.isMobile ? mobile : desktop),
 
         get input() {
-            const padding = this.getSize('8px', '12px', '14px');
-            const fontSize = this.getSize('14px', '16px', '18px');
-            return `width:100%;padding:${padding};border:none;border-radius:6px;background:rgba(255,255,255,0.95);color:#333;font-size:${fontSize};box-sizing:border-box;-webkit-appearance:none;appearance:none;outline:none;`;
+            const padding = this.getSize('8px 10px', '10px 12px', '12px 14px');
+            const fontSize = this.getSize('14px', '15px', '16px');
+            return `width:100%;padding:${padding};border:1px solid var(--szu-border);border-radius:6px;background:var(--szu-bg-secondary);color:var(--szu-text-main);font-size:${fontSize};font-family:inherit;box-sizing:border-box;-webkit-appearance:none;appearance:none;outline:none;`;
         },
 
         get button() {
-            const padding = this.getSize('12px', '15px', '18px');
-            const fontSize = this.getSize('16px', '18px', '20px');
-            return `width:100%;padding:${padding};border:none;border-radius:8px;cursor:pointer;font-size:${fontSize};font-weight:bold;transition:all 0.3s;text-shadow:1px 1px 2px rgba(0,0,0,0.3);-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent;`;
+            const padding = this.getSize('10px', '12px', '14px');
+            const fontSize = this.getSize('15px', '16px', '18px');
+            return `width:100%;padding:${padding};border:1px solid var(--szu-btn-primary-bg);border-radius:6px;background:var(--szu-btn-primary-bg);color:var(--szu-btn-primary-text);cursor:pointer;font-size:${fontSize};font-weight:500;font-family:inherit;-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;gap:6px;`;
+        },
+
+        get secondaryButton() {
+            const padding = this.getSize('10px', '12px', '14px');
+            const fontSize = this.getSize('15px', '16px', '18px');
+            return `width:100%;padding:${padding};border:1px solid var(--szu-border);border-radius:6px;background:var(--szu-bg-panel);color:var(--szu-text-main);cursor:pointer;font-size:${fontSize};font-weight:500;font-family:inherit;-webkit-appearance:none;appearance:none;outline:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;gap:6px;`;
         }
     };
 
@@ -58,7 +395,7 @@
     const Storage = {
         prefix: 'szu_sports_',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        version: '1.2.6',
+        version: '1.2.7',
 
         set(key, value) {
             const data = { value, timestamp: Date.now(), version: this.version };
@@ -352,8 +689,8 @@
         "羽毛球": {
             "丽湖": {
                 options: [
-                    { value: '至畅', label: '🏆 至畅体育馆' },
-                    { value: '至快', label: '⚡ 至快体育馆' },
+                    { value: '至畅', label: '至畅体育馆' },
+                    { value: '至快', label: '至快体育馆' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "至畅") return fullName.includes("至畅");
@@ -363,7 +700,7 @@
             },
             "粤海": {
                 options: [
-                    { value: '运动广场东馆羽毛球场', label: '🏸 运动广场东馆羽毛球场' },
+                    { value: '运动广场东馆羽毛球场', label: '运动广场东馆羽毛球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "运动广场东馆羽毛球场") return fullName.includes("东馆") || fullName.includes("运动广场");
@@ -374,8 +711,8 @@
         "网球": {
             "粤海": {
                 options: [
-                    { value: '运动广场海边网球场', label: '🌊 运动广场海边网球场' },
-                    { value: '北区网球场', label: '🎾 北区网球场' },
+                    { value: '运动广场海边网球场', label: '运动广场海边网球场' },
+                    { value: '北区网球场', label: '北区网球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "运动广场海边网球场") return fullName.includes("海边") || fullName.includes("运动广场");
@@ -385,8 +722,8 @@
             },
             "丽湖": {
                 options: [
-                    { value: '北区体育场网球场', label: '🏟️ 北区体育场网球场' },
-                    { value: '南区室外网球场', label: '🌳 南区室外网球场' },
+                    { value: '北区体育场网球场', label: '北区体育场网球场' },
+                    { value: '南区室外网球场', label: '南区室外网球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "北区体育场网球场") return fullName.includes("北区体育场");
@@ -398,7 +735,7 @@
         "排球": {
             "粤海": {
                 options: [
-                    { value: '西馆排球场(包场)', label: '🏐 西馆排球场(包场)' },
+                    { value: '西馆排球场(包场)', label: '西馆排球场(包场)' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "西馆排球场(包场)") return fullName.includes("西馆") || fullName.includes("排球场");
@@ -407,7 +744,7 @@
             },
             "丽湖": {
                 options: [
-                    { value: '风雨操场排球场', label: '☔ 风雨操场排球场' },
+                    { value: '风雨操场排球场', label: '风雨操场排球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "风雨操场排球场") return fullName.includes("风雨操场");
@@ -418,8 +755,8 @@
         "篮球": {
             "粤海": {
                 options: [
-                    { value: '运动广场天台篮球场', label: '🏙️ 运动广场天台篮球场' },
-                    { value: '运动广场东馆室内篮球场', label: '🏀 运动广场东馆室内篮球场' },
+                    { value: '运动广场天台篮球场', label: '运动广场天台篮球场' },
+                    { value: '运动广场东馆室内篮球场', label: '运动广场东馆室内篮球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "运动广场天台篮球场") return fullName.includes("天台") || fullName.includes("运动广场");
@@ -429,7 +766,7 @@
             },
             "丽湖": {
                 options: [
-                    { value: '风雨操场篮球场', label: '🏀 风雨操场篮球场' },
+                    { value: '风雨操场篮球场', label: '风雨操场篮球场' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "风雨操场篮球场") return fullName.includes("风雨操场");
@@ -440,7 +777,7 @@
         "乒乓球": {
             "粤海": {
                 options: [
-                    { value: '北区乒乓球馆', label: '🏓 北区乒乓球馆' },
+                    { value: '北区乒乓球馆', label: '北区乒乓球馆' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "北区乒乓球馆") return fullName.includes("北区");
@@ -449,13 +786,142 @@
             },
             "丽湖": {
                 options: [
-                    { value: '体育馆乒乓球室', label: '🏓 体育馆乒乓球室' },
+                    { value: '体育馆乒乓球室', label: '体育馆乒乓球室' },
                 ],
                 filter: (fullName, preferredVenue) => {
                     if (preferredVenue === "体育馆乒乓球室") return fullName.includes("体育馆");
                     return false;
                 }
             }
+        },
+    };
+
+    // ==================== SVG 图标库 ====================
+    const I = {
+        _svg: (s, d, extra = '') => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${extra}>${d}</svg>`,
+
+        tennis: (s = 16) => I._svg(s,
+            `<circle cx="12" cy="12" r="10"/>` +
+            `<path d="M18.09 5.91A8.962 8.962 0 0 0 12 12a8.962 8.962 0 0 0-6.09 6.09"/>` +
+            `<path d="M5.91 5.91A8.962 8.962 0 0 1 12 12a8.962 8.962 0 0 1 6.09 6.09"/>`
+        ),
+        moon: (s = 16) => I._svg(s, `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`),
+        sun: (s = 16) => I._svg(s,
+            `<circle cx="12" cy="12" r="5"/>` +
+            `<line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>` +
+            `<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>` +
+            `<line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>` +
+            `<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`
+        ),
+        gear: (s = 14) => I._svg(s,
+            `<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>` +
+            `<circle cx="12" cy="12" r="3"/>`
+        ),
+        close: (s = 16) => I._svg(s, `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`),
+        user: (s = 14) => I._svg(s,
+            `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>` +
+            `<circle cx="12" cy="7" r="4"/>`
+        ),
+        calendar: (s = 14) => I._svg(s,
+            `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>` +
+            `<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>` +
+            `<line x1="3" y1="10" x2="21" y2="10"/>`
+        ),
+        sport: (s = 14) => I._svg(s, `<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>`),
+        campus: (s = 14) => I._svg(s,
+            `<path d="M22 10v6M2 10l10-5 10 5-10 5z"/>` +
+            `<path d="M6 12v5c0 1.1 2.69 2 6 2s6-.9 6-2v-5"/>`
+        ),
+        stadium: (s = 14) => I._svg(s,
+            `<path d="M3 21h18"/>` +
+            `<path d="M5 21V7l7-4 7 4v14"/>` +
+            `<path d="M9 21v-4a3 3 0 0 1 6 0v4"/>`
+        ),
+        clock: (s = 14) => I._svg(s,
+            `<circle cx="12" cy="12" r="10"/>` +
+            `<polyline points="12 6 12 12 16 14"/>`
+        ),
+        timer: (s = 14) => I._svg(s,
+            `<line x1="10" y1="2" x2="14" y2="2"/>` +
+            `<circle cx="12" cy="14" r="8"/>` +
+            `<path d="M12 14l3-3"/>` +
+            `<path d="M19.4 6.6l1-1"/>`
+        ),
+        refresh: (s = 14) => I._svg(s,
+            `<path d="M21.5 2v6h-6"/>` +
+            `<path d="M21.34 15.57a10 10 0 1 1-.57-8.38L21.5 8"/>`
+        ),
+        save: (s = 14) => I._svg(s,
+            `<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>` +
+            `<polyline points="17 21 17 13 7 13 7 21"/>` +
+            `<polyline points="7 3 7 8 15 8"/>`
+        ),
+        play: (s = 14) => I._svg(s, `<polygon points="5 3 19 12 5 21 5 3"/>`),
+        stop: (s = 14) => I._svg(s, `<rect x="6" y="6" width="12" height="12" rx="1"/>`),
+        alarm: (s = 14) => I._svg(s,
+            `<circle cx="12" cy="13" r="8"/>` +
+            `<path d="M12 9v4l2 2"/>` +
+            `<path d="M5 3L2 6"/><path d="M22 6l-3-3"/>` +
+            `<path d="M6.38 18.7L4 21"/><path d="M17.64 18.67L20 21"/>`
+        ),
+        xCircle: (s = 14) => I._svg(s,
+            `<circle cx="12" cy="12" r="10"/>` +
+            `<line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`
+        ),
+        smartphone: (s = 14) => I._svg(s,
+            `<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>` +
+            `<line x1="12" y1="18" x2="12.01" y2="18"/>`
+        ),
+        zap: (s = 14) => I._svg(s, `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`),
+        edit: (s = 14) => I._svg(s,
+            `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>` +
+            `<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`
+        ),
+        check: (s = 14) => I._svg(s, `<polyline points="20 6 9 17 4 12"/>`),
+        warn: (s = 14) => I._svg(s,
+            `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>` +
+            `<line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`
+        ),
+        info: (s = 14) => I._svg(s,
+            `<circle cx="12" cy="12" r="10"/>` +
+            `<line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>`
+        ),
+        lock: (s = 14) => I._svg(s,
+            `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>` +
+            `<path d="M7 11V7a5 5 0 0 1 10 0v4"/>`
+        ),
+        search: (s = 14) => I._svg(s,
+            `<circle cx="11" cy="11" r="8"/>` +
+            `<line x1="21" y1="21" x2="16.65" y2="16.65"/>`
+        ),
+        flag: (s = 14) => I._svg(s,
+            `<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>` +
+            `<line x1="4" y1="22" x2="4" y2="15"/>`
+        ),
+        bookmark: (s = 14) => I._svg(s, `<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>`),
+        lightbulb: (s = 14) => I._svg(s,
+            `<path d="M9 18h6"/>` +
+            `<path d="M10 22h4"/>` +
+            `<path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>`
+        ),
+        chevronDown: (s = 12) => I._svg(s, `<polyline points="6 9 12 15 18 9"/>`),
+
+        // 日志图标：根据 emoji 前缀返回对应 SVG
+        forLog: (msg) => {
+            const m = {
+                '❌': I.close(13), '✅': I.check(13), '⚠️': I.warn(13), '⚠': I.warn(13),
+                '🔐': I.lock(13), '🔄': I.refresh(13), '⏰': I.clock(13), '⏱️': I.timer(13),
+                '💾': I.save(13), '⏹️': I.stop(13), '📱': I.smartphone(13), '🚀': I.play(13),
+                '⚙️': I.gear(13), '🎾': I.tennis(13), '🏟️': I.stadium(13), '📅': I.calendar(13),
+                '📋': I.bookmark(13), '📊': I.zap(13), '🔍': I.search(13), '🏁': I.flag(13),
+                '🎉': I.check(13), '🎊': I.flag(13), '🎮': I.zap(13), '🧹': I.refresh(13),
+                '🔆': I.sun(13), '📌': I.bookmark(13), '💥': I.warn(13), '🔥': I.warn(13),
+                '😢': I.xCircle(13), 'ℹ️': I.info(13),
+            };
+            for (const [e, icon] of Object.entries(m)) {
+                if (msg.startsWith(e)) return `<span style="display:inline-flex;vertical-align:middle;margin-right:5px;flex-shrink:0;">${icon}</span>${msg.slice(e.length)}`;
+            }
+            return msg.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/u, '');
         },
     };
 
@@ -485,7 +951,7 @@
         const baseOptions = VENUE_CONFIG[sport]?.[campus]?.options || [];
         return [
             ...baseOptions,
-            { value: '全部', label: '🔄 全部场馆' }
+            { value: '全部', label: '全部场馆' }
         ];
     }
 
@@ -671,18 +1137,18 @@
         const btn = document.createElement('div');
         btn.id = 'floating-toggle-btn';
 
-        const size = Styles.getSize('60px', '70px', '80px');
-        const fontSize = Styles.getSize('24px', '28px', '32px');
+        const size = Styles.getSize('50px', '56px', '64px');
+        const fontSize = Styles.getSize('24px', '26px', '28px');
 
-        btn.style.cssText = `position:fixed;top:20px;right:20px;width:${size};height:${size};background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10001;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:all 0.3s;border:3px solid rgba(255,255,255,0.2);font-size:${fontSize};user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;`;
+        btn.style.cssText = `position:fixed;top:20px;right:20px;width:${size};height:${size};background:var(--szu-bg-panel);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid var(--szu-border);font-size:${fontSize};user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;color:var(--szu-text-main);will-change:transform;`;
 
-        btn.innerHTML = '🎾';
+        btn.innerHTML = I.tennis(24);
         btn.title = '显示/隐藏预约面板';
 
         Interaction.bind(btn, togglePanel);
 
         if (!Device.isTouch) {
-            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.1)');
+            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
             btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
         }
 
@@ -695,10 +1161,10 @@
         panel.id = 'auto-booking-panel';
 
         const mobileStyles = Device.isMobile ?
-            `width:calc(100vw - 30px);max-width:${Device.isIPad ? '500px' : '380px'};top:${Device.isIPad ? '120px' : '100px'};left:50%;font-size:${Device.isIPad ? '18px' : '16px'};max-height:calc(100vh - 150px);` :
-            `width:400px;top:20px;right:90px;max-height:90vh;`;
+            `width:calc(100vw - 32px);max-width:${Device.isIPad ? '480px' : '360px'};top:${Device.isIPad ? '72px' : '56px'};left:50%;font-size:${Device.isIPad ? '16px' : '15px'};` :
+            `width:380px;top:20px;right:90px;`;
 
-        panel.style.cssText = `position:fixed;${mobileStyles}background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:15px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;color:white;border:2px solid rgba(255,255,255,0.2);overflow-y:auto;transition:opacity 0.3s ease,transform 0.3s ease;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;`;
+        panel.style.cssText = `position:fixed;${mobileStyles}background:var(--szu-bg-panel);border-radius:12px;padding:${Device.isMobile ? '16px' : '20px'};box-shadow:var(--szu-shadow-soft);z-index:10000;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:var(--szu-text-main);border:1px solid var(--szu-border);overflow:visible;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;`;
 
         const getTodayDate = () => {
             const d = new Date();
@@ -706,39 +1172,42 @@
         };
 
         panel.innerHTML = `
-        <div style="margin-bottom:15px;text-align:center;position:relative;">
-            <h3 style="margin:0;font-size:${Device.isMobile ? '20px' : '18px'};text-shadow:2px 2px 4px rgba(0,0,0,0.5);">🎾 自动预约助手 v1.2.6</h3>
-            <button id="close-panel" style="position:absolute;top:-5px;right:-5px;background:rgba(255,255,255,0.2);border:none;color:white;width:${Device.isMobile ? '35px' : '30px'};height:${Device.isMobile ? '35px' : '30px'};border-radius:50%;cursor:pointer;font-size:${Device.isMobile ? '20px' : '16px'};display:flex;align-items:center;justify-content:center;touch-action:manipulation;" title="隐藏面板">×</button>
-            <button id="toggle-config" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);color:white;padding:${Device.isMobile ? '8px 12px' : '5px 10px'};border-radius:5px;cursor:pointer;margin-top:5px;font-size:${Device.isMobile ? '14px' : '12px'};touch-action:manipulation;">⚙️ 配置设置</button>
+        <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--szu-border);padding-bottom:10px;gap:12px;">
+            <h3 style="margin:0;flex:1;min-width:0;font-size:${Device.isMobile ? '17px' : '16px'};font-weight:600;font-family:'Noto Serif SC', 'Source Han Serif SC', serif;letter-spacing:0.5px;color:var(--szu-text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:32px;display:flex;align-items:center;gap:8px;"><span style="display:inline-flex;align-items:center;color:var(--szu-text-main);">${I.tennis(18)}</span>自动预约助手</h3>
+            <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
+                <button id="toggle-theme" style="background:transparent;border:none;color:var(--szu-text-secondary);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;transition:background 0.2s;flex-shrink:0;" onmouseover="this.style.background='var(--szu-bg-hover)'" onmouseout="this.style.background='transparent'">${I.moon(16)}</button>
+                <button id="toggle-config" style="background:var(--szu-bg-secondary);border:1px solid var(--szu-border);color:var(--szu-text-secondary);padding:0 10px;border-radius:6px;cursor:pointer;font-size:12px;line-height:32px;height:32px;transition:background 0.2s;font-family:inherit;flex-shrink:0;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;">${I.gear(13)} 设置</button>
+                <button id="close-panel" style="background:transparent;border:none;color:var(--szu-text-subtle);cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:6px;transition:background-color 0.18s ease,color 0.18s ease,transform 0.18s var(--szu-motion-ease);flex-shrink:0;" onmouseover="this.style.background='var(--szu-bg-hover)';this.style.color='var(--szu-text-main)'" onmouseout="this.style.background='transparent';this.style.color='var(--szu-text-subtle)'">${I.close(16)}</button>
+            </div>
         </div>
 
-        <div id="config-area" style="background:rgba(255,255,255,0.1);padding:15px;border-radius:8px;margin-bottom:15px;display:none;">
+        <div id="config-area" class="szu-section szu-floating-popover" style="background:var(--szu-bg-secondary);padding:16px;border-radius:8px;border:1px solid var(--szu-border);">
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">👤 学号/工号:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.user(13)} 学号/工号</label>
                 <input id="user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="${Styles.input}">
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📝 姓名:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.edit(13)} 姓名</label>
                 <input id="user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="${Styles.input}">
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">📅 预约日期:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.calendar(13)} 预约日期</label>
                 <input id="target-date" type="date" value="${CONFIG.TARGET_DATE}" style="${Styles.input}">
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 运动项目:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.sport(13)} 运动项目</label>
                 <select id="sport-type" style="${Styles.input}">
                     ${Object.keys(SPORT_CODES).map(s => `<option value="${s}" ${s === CONFIG.SPORT ? 'selected' : ''}>${s}</option>`).join('')}
                 </select>
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏫 校区:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.campus(13)} 校区</label>
                 <select id="campus" style="${Styles.input}">
                     ${Object.keys(CAMPUS_CODES).map(c => `<option value="${c}" ${c === CONFIG.CAMPUS ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>
             </div>
             <div id="venue-selection" style="margin-bottom:12px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🏟️ 优先场馆:</label>
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.stadium(13)} 预约场馆</label>
                 <select id="preferred-venue" style="${Styles.input}">
                     ${getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt =>
             `<option value="${opt.value}" ${CONFIG.PREFERRED_VENUE === opt.value ? 'selected' : ''}>${opt.label}</option>`
@@ -746,82 +1215,120 @@
                 </select>
             </div>
             <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:8px;">⏰ 优先时间段:</label>
-                <div id="time-slots-container" style="background:rgba(255,255,255,0.1);border-radius:4px;padding:8px;display:grid;grid-template-columns:repeat(${Device.isMobile ? '2' : '2'},1fr);gap:${Device.isMobile ? '6px' : '4px'};">
-                    ${TIME_SLOTS.map(slot => `<label style="display:flex;align-items:center;font-size:${Device.isMobile ? '13px' : '11px'};cursor:pointer;padding:${Device.isMobile ? '4px' : '2px'};"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:5px;transform:${Device.isMobile ? 'scale(1.2)' : 'scale(1)'};flex-shrink:0;"><span style="white-space:nowrap;">${slot}</span></label>`).join('')}
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:6px;">${I.clock(13)} 优先时间段</label>
+                <div id="time-slots-container" style="background:var(--szu-bg-panel);border:1px solid var(--szu-border);border-radius:6px;padding:10px;display:grid;grid-template-columns:repeat(${Device.isMobile ? '2' : '2'},1fr);gap:8px;">
+                    ${TIME_SLOTS.map(slot => `<label style="display:flex;align-items:center;font-size:13px;color:var(--szu-text-secondary);cursor:pointer;"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="margin-right:6px;flex-shrink:0;accent-color:var(--szu-text-main);"><span style="white-space:nowrap;">${slot}</span></label>`).join('')}
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                 <div>
-                    <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏱️ 查询间隔(秒):</label>
+                    <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.timer(13)} 间隔(秒)</label>
                     <input id="retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="${Styles.input}">
                 </div>
                 <div>
-                    <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">🔄 最大重试:</label>
+                    <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.refresh(13)} 最大重试</label>
                     <input id="max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="${Styles.input}">
                 </div>
             </div>
-            <div style="margin-bottom:12px;">
-                <label style="font-size:${Device.isMobile ? '14px' : '12px'};display:block;margin-bottom:3px;">⏰ 请求超时(秒):</label>
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px;color:var(--szu-text-muted);display:flex;align-items:center;gap:5px;margin-bottom:4px;">${I.clock(13)} 超时(秒)</label>
                 <input id="request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${Styles.input}">
             </div>
 
-            <button id="save-config" style="${Styles.button}background:linear-gradient(45deg,#4caf50,#45a049);color:white;font-size:${Device.isMobile ? '16px' : '14px'};margin-bottom:10px;">💾 保存配置</button>
+            <button id="save-config" style="${Styles.button}">${I.save(15)} 保存配置</button>
         </div>
 
-        <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:8px;margin-bottom:15px;">
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">👤 <span id="display-user">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span></div>
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">📅 <span id="display-date">${CONFIG.TARGET_DATE}</span> | 🏟️ <span id="display-sport">${CONFIG.SPORT}</span> | 🏫 <span id="display-campus">${CONFIG.CAMPUS}</span></div>
-            <div id="venue-display" style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'block' : 'none'};">🏟️ 优先场馆: <span id="display-venue">${CONFIG.PREFERRED_VENUE}</span></div>
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:5px;">⏰ <span id="display-times">${CONFIG.PREFERRED_TIMES.join(', ')}</span></div>
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};">⚙️ 间隔:<span id="display-interval">${CONFIG.RETRY_INTERVAL}</span>s | 重试:<span id="display-retry">${CONFIG.MAX_RETRY_TIMES}</span> | 超时:<span id="display-timeout">${CONFIG.REQUEST_TIMEOUT}</span>s</div>
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-top:5px;">🎯 进度: <span id="booking-progress">0/${getMaxBookings()} 个时段</span></div>
+        <div id="quick-summary" class="szu-section" style="background:var(--szu-bg-secondary);padding:12px;border-radius:8px;border:1px solid var(--szu-border);margin-bottom:12px;">
+            <button class="szu-quick-action szu-quick-line" data-quick="user" title="快捷修改姓名和学号" style="font-size:13px;margin-bottom:8px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.user(14)}</span><span id="display-user" style="font-weight:500;color:var(--szu-text-main);">${CONFIG.USER_INFO.YYRXM} (${CONFIG.USER_INFO.YYRGH})</span></button>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                <button class="szu-chip szu-quick-action" data-quick="date" title="快捷修改预约日期" style="font-size:12px;color:var(--szu-text-main);background:var(--szu-bg-panel);padding:3px 10px;border-radius:4px;line-height:1.6;display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.calendar(12)}</span><span id="display-date">${CONFIG.TARGET_DATE}</span></button>
+                <button class="szu-chip szu-quick-action" data-quick="sport" title="快捷修改运动项目" style="font-size:12px;color:var(--szu-text-main);background:var(--szu-bg-panel);padding:3px 10px;border-radius:4px;line-height:1.6;display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.sport(12)}</span><span id="display-sport">${CONFIG.SPORT}</span></button>
+                <button class="szu-chip szu-quick-action" data-quick="campus" title="快捷修改校区" style="font-size:12px;color:var(--szu-text-main);background:var(--szu-bg-panel);padding:3px 10px;border-radius:4px;line-height:1.6;display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.campus(12)}</span><span id="display-campus">${CONFIG.CAMPUS}</span></button>
+            </div>
+            <button id="venue-display" class="szu-quick-action szu-quick-line" data-quick="venue" title="快捷修改预约场馆" style="font-size:13px;margin-bottom:6px;display:${shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'flex' : 'none'};"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.stadium(14)}</span>预约场馆: <span id="display-venue" style="font-weight:500;color:var(--szu-text-main);">${CONFIG.PREFERRED_VENUE}</span></button>
+            <button class="szu-quick-action szu-quick-line" data-quick="times" title="快捷修改优先时间段" style="font-size:13px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.clock(14)}</span><span id="display-times" style="color:var(--szu-text-main);">${CONFIG.PREFERRED_TIMES.join(', ')}</span></button>
+            <div id="quick-editor" class="szu-quick-editor szu-floating-popover"></div>
+            <div style="font-size:12px;color:var(--szu-text-muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--szu-border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                <button class="szu-quick-action" data-quick="params" title="快捷修改请求参数" style="letter-spacing:0.3px;border-color:transparent;background:transparent;color:var(--szu-text-muted);padding:2px 4px;border-radius:6px;">间隔 <span id="display-interval" style="font-weight:500;color:var(--szu-text-secondary);">${CONFIG.RETRY_INTERVAL}</span>s · 重试 <span id="display-retry" style="font-weight:500;color:var(--szu-text-secondary);">${CONFIG.MAX_RETRY_TIMES}</span> · 超时 <span id="display-timeout" style="font-weight:500;color:var(--szu-text-secondary);">${CONFIG.REQUEST_TIMEOUT}</span>s</button>
+                <span style="background:var(--szu-bg-panel);padding:2px 8px;border-radius:4px;border:1px solid var(--szu-border);color:var(--szu-text-main);font-weight:500;white-space:nowrap;">进度 <span id="booking-progress">0/${getMaxBookings()}</span></span>
+            </div>
         </div>
 
-        <div style="background:rgba(255,255,255,0.15);padding:12px;border-radius:8px;margin-bottom:15px;">
-            <div style="font-size:${Device.isMobile ? '15px' : '13px'};margin-bottom:8px;font-weight:bold;">⏰ 定时预约</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div class="szu-section" style="background:var(--szu-bg-secondary);padding:12px;border-radius:8px;border:1px solid var(--szu-border);margin-bottom:12px;">
+            <div style="font-size:14px;color:var(--szu-text-main);margin-bottom:8px;font-weight:500;display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;color:var(--szu-text-muted);">${I.alarm(15)}</span>定时预约</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
                 <div>
-                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">日期:</label>
-                    <input id="scheduled-date" type="date" value="${getTodayDate()}" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+                    <label style="font-size:13px;color:var(--szu-text-muted);display:block;margin-bottom:4px;">日期</label>
+                    <input id="scheduled-date" type="date" value="${getTodayDate()}" style="${Styles.input}">
                 </div>
                 <div>
-                    <label style="font-size:${Device.isMobile ? '13px' : '11px'};display:block;margin-bottom:3px;">时间:</label>
-                    <input id="scheduled-time" type="time" value="12:30" style="${Styles.input}font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '8px' : '6px'};">
+                    <label style="font-size:13px;color:var(--szu-text-muted);display:block;margin-bottom:4px;">时间</label>
+                    <input id="scheduled-time" type="time" value="12:30" style="${Styles.input}">
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <button id="set-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#ff9800,#f57c00);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">⏰ 设置定时</button>
-                <button id="cancel-schedule-btn" style="${Styles.button}background:linear-gradient(45deg,#9e9e9e,#757575);color:white;font-size:${Device.isMobile ? '14px' : '12px'};padding:${Device.isMobile ? '10px' : '8px'};">❌ 取消定时</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button id="set-schedule-btn" style="${Styles.secondaryButton}">${I.alarm(14)} 设置定时</button>
+                <button id="cancel-schedule-btn" style="${Styles.secondaryButton}color:var(--szu-log-error-color);border-color:var(--szu-log-error-border);background:var(--szu-log-error-bg);">${I.xCircle(14)} 取消定时</button>
             </div>
-            <div id="countdown-display" style="font-size:${Device.isMobile ? '14px' : '12px'};margin-top:8px;text-align:center;color:#ffd700;font-weight:bold;">未设置定时任务</div>
+            <div id="countdown-display" style="font-size:13px;margin-top:10px;text-align:center;color:var(--szu-log-warning-color);font-weight:500;padding:6px;background:var(--szu-log-warning-bg);border-radius:6px;border:1px solid var(--szu-log-warning-border);">未设置定时任务</div>
         </div>
 
-        <div style="margin-bottom:12px;">
-            <button id="start-btn" style="${Styles.button}background:linear-gradient(45deg,#ff6b6b,#ee5a52);color:white;">🚀 开始预约</button>
+        <div class="szu-section" style="margin-bottom:12px;">
+            <button id="start-btn" style="${Styles.button}">${I.play(15)} 开始预约</button>
         </div>
 
-        <div id="status-area" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;font-size:${Device.isMobile ? '14px' : '12px'};max-height:${Device.isMobile ? '250px' : '200px'};overflow-y:auto;border:1px solid rgba(255,255,255,0.1);">
-            <div style="color:#ffd700;">🔧 等待开始...</div>
+        <div id="status-area" class="szu-section" style="background:var(--szu-bg-secondary);padding:10px;border-radius:8px;font-size:13px;height:${Device.isMobile ? '170px' : '180px'};overflow-y:auto;border:1px solid var(--szu-border);color:var(--szu-text-secondary);font-family:var(--font-mono, monospace);box-sizing:border-box;">
+            <div style="color:var(--szu-text-muted);margin-bottom:4px;">[ 就绪 ] 等待开始...</div>
         </div>
 
-        <div style="margin-top:15px;text-align:center;font-size:${Device.isMobile ? '13px' : '11px'};opacity:0.8;">${Device.isMobile ? '📱 触摸优化版本' : '⚡ 快捷键: Ctrl+Shift+S 开始/停止'}</div>
+        <div class="szu-section" style="margin-top:10px;border:1px solid var(--szu-border);border-radius:8px;overflow:hidden;">
+            <div id="tips-toggle" style="display:flex;align-items:center;gap:6px;padding:8px 10px;cursor:pointer;background:var(--szu-bg-secondary);transition:background 0.2s;user-select:none;-webkit-tap-highlight-color:transparent;" onmouseover="this.style.background='var(--szu-bg-hover)'" onmouseout="this.style.background='var(--szu-bg-secondary)'">
+                <span style="display:inline-flex;color:var(--szu-log-warning-color);">${I.lightbulb(15)}</span>
+                <span style="flex:1;font-size:13px;font-weight:500;color:var(--szu-text-main);">预约小贴士</span>
+                <span id="tips-arrow" style="display:inline-flex;color:var(--szu-text-subtle);transition:transform 0.25s ease;">${I.chevronDown(14)}</span>
+            </div>
+            <div id="tips-content" class="szu-floating-popover szu-tips-content" style="padding:12px;background:var(--szu-bg-secondary);">
+                <div style="border-top:1px solid var(--szu-border);padding-top:10px;display:flex;flex-direction:column;gap:10px;">
+                    <div style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.6;color:var(--szu-text-secondary);">
+                        <span style="display:inline-flex;flex-shrink:0;margin-top:3px;color:var(--szu-log-success-color);">${I.check(13)}</span>
+                        <span><strong style="color:var(--szu-text-main);font-weight:600;">推荐定时 12:30 抢票</strong><br>场馆一般在 12:30 放票，建议提前设好定时任务，在放票的第一时间自动抢，成功率最高。</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.6;color:var(--szu-text-secondary);">
+                        <span style="display:inline-flex;flex-shrink:0;margin-top:3px;color:var(--szu-log-warning-color);">${I.warn(13)}</span>
+                        <span><strong style="color:var(--szu-text-main);font-weight:600;">后台挂抢请调大间隔</strong><br>如果 12:30 没约上需要挂后台持续抢，请将请求间隔调到 <strong style="color:var(--szu-text-main);">10 秒以上</strong>，频率过高可能被系统检测导致封号。</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;line-height:1.6;color:var(--szu-text-secondary);">
+                        <span style="display:inline-flex;flex-shrink:0;margin-top:3px;color:var(--szu-text-muted);">${I.info(13)}</span>
+                        <span>建议优先选择 2 个时间段，系统会自动按优先级依次尝试预约。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         `;
 
         document.body.appendChild(panel);
+        ['config-area', 'quick-editor', 'tips-content'].forEach(id => {
+            const el = panel.querySelector(`#${id}`);
+            if (el) document.body.appendChild(el);
+        });
+        requestAnimationFrame(() => panel.classList.add('szu-panel-ready'));
 
         const transforms = Device.isMobile ?
             { visible: 'translateX(-50%) translateY(0)', hidden: 'translateX(-50%) translateY(-30px)' } :
-            { visible: 'translateX(0)', hidden: 'translateX(100%)' };
+            { visible: 'translateX(0)', hidden: 'translateX(30px)' };
 
         if (isPanelVisible) {
             panel.style.display = 'block';
             panel.style.opacity = '1';
             panel.style.transform = transforms.visible;
+            panel.style.boxShadow = 'var(--szu-shadow-lift)';
         } else {
             panel.style.display = 'none';
             panel.style.opacity = '0';
             panel.style.transform = transforms.hidden;
+            panel.style.boxShadow = 'var(--szu-shadow-soft)';
         }
 
         bindEvents(panel);
@@ -835,59 +1342,305 @@
         Storage.set('panelVisible', isPanelVisible);
 
         const transforms = Device.isMobile ?
-            { visible: 'translateX(-50%) translateY(0)', hidden: 'translateX(-50%) translateY(-30px)' } :
-            { visible: 'translateX(0)', hidden: 'translateX(100%)' };
+            { visible: 'translateX(-50%) translateY(0)', hidden: 'translateX(-50%) translateY(-20px)' } :
+            { visible: 'translateX(0)', hidden: 'translateX(30px)' };
 
         if (isPanelVisible) {
             controlPanel.style.display = 'block';
             controlPanel.style.transform = transforms.hidden;
             controlPanel.style.opacity = '0';
-            setTimeout(() => {
+            controlPanel.style.boxShadow = 'var(--szu-shadow-lift)';
+            requestAnimationFrame(() => {
                 controlPanel.style.opacity = '1';
                 controlPanel.style.transform = transforms.visible;
-            }, 10);
+            });
         } else {
+            closeAllFloatingPopovers();
             controlPanel.style.opacity = '0';
             controlPanel.style.transform = transforms.hidden;
+            controlPanel.style.boxShadow = 'var(--szu-shadow-soft)';
             setTimeout(() => {
                 if (!isPanelVisible) controlPanel.style.display = 'none';
-            }, 300);
+            }, 260);
         }
 
         if (floatingButton) {
-            floatingButton.style.background = isPanelVisible ?
-                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
-                'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
-            floatingButton.innerHTML = isPanelVisible ? '🎾' : '📱';
+            const isDark = Storage.get('theme', 'light') === 'dark';
+            if (!isPanelVisible) {
+                floatingButton.style.background = isDark ? '#171717' : '#ffffff';
+                floatingButton.style.color = isDark ? '#f5f5f5' : '#1a1a1a';
+                floatingButton.innerHTML = I.smartphone(24);
+            } else {
+                floatingButton.style.background = 'var(--szu-bg-panel)';
+                floatingButton.style.color = 'var(--szu-text-main)';
+                floatingButton.innerHTML = I.tennis(24);
+            }
         }
+    }
+
+    function placeFloatingPopover(popover, trigger, options = {}) {
+        if (!popover) return;
+
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const panelRect = document.getElementById('auto-booking-panel')?.getBoundingClientRect();
+        const margin = 12;
+        const width = Math.min(
+            options.width || panelRect?.width || 340,
+            viewportWidth - margin * 2
+        );
+
+        popover.style.width = `${Math.max(240, width)}px`;
+        popover.style.maxWidth = `calc(100vw - ${margin * 2}px)`;
+
+        const popoverRect = popover.getBoundingClientRect();
+        const anchorLeft = panelRect
+            ? panelRect.left + panelRect.width / 2
+            : viewportWidth / 2;
+        const triggerRect = trigger?.getBoundingClientRect();
+        const anchorTop = triggerRect
+            ? triggerRect.bottom + 8
+            : (panelRect ? panelRect.top + 64 : 96);
+
+        let left = anchorLeft - popoverRect.width / 2;
+        left = Math.max(margin, Math.min(left, viewportWidth - popoverRect.width - margin));
+
+        let top = anchorTop;
+        top = Math.max(margin, Math.min(top, viewportHeight - popoverRect.height - margin));
+
+        popover.style.transformOrigin = 'center center';
+        popover.style.left = `${left}px`;
+        popover.style.top = `${top}px`;
+    }
+
+    function openFloatingPopover(popover, trigger, options = {}) {
+        if (!popover || !trigger) return;
+        popover.classList.add('is-open');
+        placeFloatingPopover(popover, trigger, options);
+    }
+
+    function closeFloatingPopover(popover) {
+        if (!popover) return;
+        popover.classList.remove('is-open');
+    }
+
+    function closeConfigPopover() {
+        closeFloatingPopover(document.getElementById('config-area'));
+        const btn = document.getElementById('toggle-config');
+        if (btn) btn.innerHTML = `${I.gear(13)} 设置`;
+    }
+
+    function closeTipsPopover() {
+        closeFloatingPopover(document.getElementById('tips-content'));
+        const arrow = document.getElementById('tips-arrow');
+        const toggle = document.getElementById('tips-toggle');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+        if (toggle) toggle.classList.remove('is-active');
+    }
+
+    function closeAllFloatingPopovers() {
+        closeQuickEditor();
+        closeConfigPopover();
+        closeTipsPopover();
+    }
+
+    function normalizeConfig(config) {
+        const next = { ...config };
+        next.PREFERRED_TIMES = Array.isArray(next.PREFERRED_TIMES) && next.PREFERRED_TIMES.length
+            ? next.PREFERRED_TIMES
+            : [TIME_SLOTS[0]];
+        next.YYLX = getYYLX(next.SPORT, next.CAMPUS);
+
+        if (!shouldShowVenueSelection(next.SPORT, next.CAMPUS)) {
+            next.PREFERRED_VENUE = '全部';
+            return next;
+        }
+
+        const venueOptions = getVenueOptions(next.SPORT, next.CAMPUS);
+        if (!venueOptions.some(opt => opt.value === next.PREFERRED_VENUE)) {
+            next.PREFERRED_VENUE = venueOptions[0]?.value || '全部';
+        }
+        return next;
+    }
+
+    function syncConfigToUI() {
+        const setValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        };
+
+        setValue('user-id', CONFIG.USER_INFO.YYRGH);
+        setValue('user-name', CONFIG.USER_INFO.YYRXM);
+        setValue('target-date', CONFIG.TARGET_DATE);
+        setValue('sport-type', CONFIG.SPORT);
+        setValue('campus', CONFIG.CAMPUS);
+        setValue('retry-interval', CONFIG.RETRY_INTERVAL);
+        setValue('max-retry', CONFIG.MAX_RETRY_TIMES);
+        setValue('request-timeout', CONFIG.REQUEST_TIMEOUT);
+
+        const venueSelection = document.getElementById('venue-selection');
+        const venueDisplay = document.getElementById('venue-display');
+        const preferredVenueSelect = document.getElementById('preferred-venue');
+        const showVenue = shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS);
+
+        if (venueSelection) venueSelection.style.display = showVenue ? 'block' : 'none';
+        if (venueDisplay) venueDisplay.style.display = showVenue ? 'flex' : 'none';
+        if (preferredVenueSelect) {
+            preferredVenueSelect.innerHTML = getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt =>
+                `<option value="${opt.value}" ${CONFIG.PREFERRED_VENUE === opt.value ? 'selected' : ''}>${opt.label}</option>`
+            ).join('');
+            preferredVenueSelect.value = CONFIG.PREFERRED_VENUE;
+        }
+
+        document.querySelectorAll('#time-slots-container input[type="checkbox"]').forEach(cb => {
+            cb.checked = CONFIG.PREFERRED_TIMES.includes(cb.value);
+        });
+    }
+
+    function applyConfigPatch(patch, label = '配置') {
+        CONFIG = normalizeConfig({ ...CONFIG, ...patch });
+        Storage.set('bookingConfig', CONFIG);
+        syncConfigToUI();
+        updateDisplayConfig();
+        updateProgress();
+        addLog(`⚡ 已快捷更新${label}`, 'success');
+    }
+
+    function closeQuickEditor() {
+        const editor = document.getElementById('quick-editor');
+        if (!editor) return;
+        editor.classList.remove('is-open');
+        editor.dataset.kind = '';
+        editor.innerHTML = '';
+        document.querySelectorAll('[data-quick].is-active').forEach(el => el.classList.remove('is-active'));
+    }
+
+    function quickHeader(title) {
+        return `
+            <div class="szu-quick-header">
+                <span>${title}</span>
+                <button type="button" id="quick-close" style="background:transparent;border:none;color:var(--szu-text-subtle);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;">${I.close(14)}</button>
+            </div>
+        `;
+    }
+
+    function openQuickEditor(kind, trigger) {
+        const configArea = document.getElementById('config-area');
+        if (configArea?.classList.contains('is-open')) return;
+
+        const editor = document.getElementById('quick-editor');
+        if (!editor) return;
+
+        if (editor.classList.contains('is-open') && editor.dataset.kind === kind) {
+            closeQuickEditor();
+            return;
+        }
+
+        const selectStyle = Styles.input;
+        const renderers = {
+            user: () => `${quickHeader('快捷修改用户信息')}
+                <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+                    <label style="display:block;font-size:12px;color:var(--szu-text-muted);">学号/工号<input id="quick-user-id" type="text" value="${CONFIG.USER_INFO.YYRGH}" style="${selectStyle}margin-top:4px;"></label>
+                    <label style="display:block;font-size:12px;color:var(--szu-text-muted);">姓名<input id="quick-user-name" type="text" value="${CONFIG.USER_INFO.YYRXM}" style="${selectStyle}margin-top:4px;"></label>
+                </div>`,
+            date: () => `${quickHeader('快捷修改日期')}<input id="quick-date" type="date" value="${CONFIG.TARGET_DATE}" style="${selectStyle}">`,
+            sport: () => `${quickHeader('快捷修改项目')}<select id="quick-sport" style="${selectStyle}">${Object.keys(SPORT_CODES).map(s => `<option value="${s}" ${s === CONFIG.SPORT ? 'selected' : ''}>${s}</option>`).join('')}</select>`,
+            campus: () => `${quickHeader('快捷修改校区')}<select id="quick-campus" style="${selectStyle}">${Object.keys(CAMPUS_CODES).map(c => `<option value="${c}" ${c === CONFIG.CAMPUS ? 'selected' : ''}>${c}</option>`).join('')}</select>`,
+            venue: () => `${quickHeader('快捷修改场馆')}<select id="quick-venue" style="${selectStyle}">${getVenueOptions(CONFIG.SPORT, CONFIG.CAMPUS).map(opt => `<option value="${opt.value}" ${opt.value === CONFIG.PREFERRED_VENUE ? 'selected' : ''}>${opt.label}</option>`).join('')}</select>`,
+            params: () => `${quickHeader('快捷修改请求参数')}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <label style="display:block;font-size:12px;color:var(--szu-text-muted);">间隔(秒)<input id="quick-retry-interval" type="number" min="1" max="60" value="${CONFIG.RETRY_INTERVAL}" style="${selectStyle}margin-top:4px;"></label>
+                    <label style="display:block;font-size:12px;color:var(--szu-text-muted);">最大重试<input id="quick-max-retry" type="number" min="10" max="9999" value="${CONFIG.MAX_RETRY_TIMES}" style="${selectStyle}margin-top:4px;"></label>
+                    <label style="display:block;font-size:12px;color:var(--szu-text-muted);grid-column:1 / -1;">请求超时(秒)<input id="quick-request-timeout" type="number" min="5" max="60" value="${CONFIG.REQUEST_TIMEOUT}" style="${selectStyle}margin-top:4px;"></label>
+                </div>`,
+            times: () => `${quickHeader('快捷修改时间段')}<div class="szu-quick-grid">${TIME_SLOTS.map(slot => `<label class="szu-quick-time"><input type="checkbox" value="${slot}" ${CONFIG.PREFERRED_TIMES.includes(slot) ? 'checked' : ''} style="accent-color:var(--szu-text-main);"><span>${slot}</span></label>`).join('')}</div>`
+        };
+
+        if (!renderers[kind]) return;
+        closeTipsPopover();
+        editor.innerHTML = renderers[kind]();
+        editor.dataset.kind = kind;
+        openFloatingPopover(editor, trigger, { width: (kind === 'times' || kind === 'params') ? 340 : 300 });
+        document.querySelectorAll('[data-quick].is-active').forEach(el => el.classList.remove('is-active'));
+        trigger?.classList.add('is-active');
+
+        Interaction.bind(editor.querySelector('#quick-close'), closeQuickEditor);
+
+        const bindChange = (selector, handler) => {
+            const el = editor.querySelector(selector);
+            if (el) el.addEventListener('change', handler);
+        };
+
+        const updateQuickUser = () => {
+            const id = editor.querySelector('#quick-user-id')?.value.trim() || CONFIG.USER_INFO.YYRGH;
+            const name = editor.querySelector('#quick-user-name')?.value.trim() || CONFIG.USER_INFO.YYRXM;
+            applyConfigPatch({ USER_INFO: { YYRGH: id, YYRXM: name } }, '用户信息');
+        };
+        const updateQuickParams = () => {
+            const retryInterval = parseInt(editor.querySelector('#quick-retry-interval')?.value, 10) || CONFIG.RETRY_INTERVAL;
+            const maxRetry = parseInt(editor.querySelector('#quick-max-retry')?.value, 10) || CONFIG.MAX_RETRY_TIMES;
+            const requestTimeout = parseInt(editor.querySelector('#quick-request-timeout')?.value, 10) || CONFIG.REQUEST_TIMEOUT;
+            applyConfigPatch({
+                RETRY_INTERVAL: retryInterval,
+                MAX_RETRY_TIMES: maxRetry,
+                REQUEST_TIMEOUT: requestTimeout
+            }, '请求参数');
+        };
+
+        bindChange('#quick-user-id', updateQuickUser);
+        bindChange('#quick-user-name', updateQuickUser);
+        bindChange('#quick-retry-interval', updateQuickParams);
+        bindChange('#quick-max-retry', updateQuickParams);
+        bindChange('#quick-request-timeout', updateQuickParams);
+        bindChange('#quick-date', (e) => applyConfigPatch({ TARGET_DATE: e.target.value }, '日期'));
+        bindChange('#quick-sport', (e) => applyConfigPatch({ SPORT: e.target.value }, '项目'));
+        bindChange('#quick-campus', (e) => applyConfigPatch({ CAMPUS: e.target.value }, '校区'));
+        bindChange('#quick-venue', (e) => applyConfigPatch({ PREFERRED_VENUE: e.target.value }, '场馆'));
+
+        editor.querySelectorAll('.szu-quick-time input').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const selected = Array.from(editor.querySelectorAll('.szu-quick-time input:checked')).map(input => input.value);
+                if (!selected.length) {
+                    cb.checked = true;
+                    addLog('⚠️ 至少保留一个时间段', 'warning');
+                    return;
+                }
+                applyConfigPatch({ PREFERRED_TIMES: selected }, '时间段');
+            });
+        });
     }
 
     function bindEvents(panel) {
         Interaction.bind(panel.querySelector('#close-panel'), togglePanel);
 
+        Interaction.bind(panel.querySelector('#toggle-theme'), () => {
+            ThemeManager.toggle();
+        });
+
         Interaction.bind(panel.querySelector('#toggle-config'), () => {
-            const area = panel.querySelector('#config-area');
+            const area = document.getElementById('config-area');
             const btn = panel.querySelector('#toggle-config');
-            if (area.style.display === 'none') {
-                area.style.display = 'block';
-                btn.textContent = '⚙️ 隐藏配置';
+            if (!area.classList.contains('is-open')) {
+                closeQuickEditor();
+                closeTipsPopover();
+                openFloatingPopover(area, btn, { width: Device.isMobile ? 340 : 380 });
+                btn.innerHTML = `${I.gear(13)} 隐藏设置`;
             } else {
-                area.style.display = 'none';
-                btn.textContent = '⚙️ 显示配置';
+                closeConfigPopover();
             }
         });
 
         const updateVenueDisplay = () => {
-            const sport = panel.querySelector('#sport-type').value;
-            const campus = panel.querySelector('#campus').value;
-            const venueSelection = panel.querySelector('#venue-selection');
-            const venueDisplay = panel.querySelector('#venue-display');
-            const preferredVenueSelect = panel.querySelector('#preferred-venue');
+            const sport = document.getElementById('sport-type').value;
+            const campus = document.getElementById('campus').value;
+            const venueSelection = document.getElementById('venue-selection');
+            const venueDisplay = document.getElementById('venue-display');
+            const preferredVenueSelect = document.getElementById('preferred-venue');
 
             const show = shouldShowVenueSelection(sport, campus);
 
             if (venueSelection) venueSelection.style.display = show ? 'block' : 'none';
-            if (venueDisplay) venueDisplay.style.display = show ? 'block' : 'none';
+            if (venueDisplay) venueDisplay.style.display = show ? 'flex' : 'none';
 
             // 更新场馆选项
             if (preferredVenueSelect && show) {
@@ -898,19 +1651,22 @@
             }
         };
 
-        panel.querySelector('#sport-type').addEventListener('change', updateVenueDisplay);
-        panel.querySelector('#campus').addEventListener('change', updateVenueDisplay);
+        document.getElementById('sport-type').addEventListener('change', updateVenueDisplay);
+        document.getElementById('campus').addEventListener('change', updateVenueDisplay);
 
-        Interaction.bind(panel.querySelector('#save-config'), () => {
+        panel.querySelectorAll('[data-quick]').forEach(el => {
+            Interaction.bind(el, () => openQuickEditor(el.dataset.quick, el));
+        });
+
+        Interaction.bind(document.getElementById('save-config'), () => {
             updateConfigFromUI();
             updateDisplayConfig();
             addLog('💾 配置已保存', 'success');
 
-            const area = panel.querySelector('#config-area');
+            const area = document.getElementById('config-area');
             const btn = panel.querySelector('#toggle-config');
             if (area && btn) {
-                area.style.display = 'none';
-                btn.textContent = '⚙️ 配置设置';
+                closeConfigPopover();
             }
         });
 
@@ -984,11 +1740,34 @@
                 }
             });
         }
+
+        // 预约小贴士 展开/折叠
+        Interaction.bind(panel.querySelector('#tips-toggle'), () => {
+            const content = document.getElementById('tips-content');
+            const arrow = panel.querySelector('#tips-arrow');
+            if (!content.classList.contains('is-open')) {
+                closeQuickEditor();
+                closeConfigPopover();
+                openFloatingPopover(content, panel.querySelector('#tips-toggle'), { width: Device.isMobile ? 320 : 340 });
+                arrow.style.transform = 'rotate(180deg)';
+                panel.querySelector('#tips-toggle')?.classList.add('is-active');
+            } else {
+                closeTipsPopover();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const content = document.getElementById('tips-content');
+            const toggle = panel.querySelector('#tips-toggle');
+            if (!content?.classList.contains('is-open')) return;
+            if (content.contains(event.target) || toggle?.contains(event.target)) return;
+            closeTipsPopover();
+        });
     }
 
     function updateCountdownDisplay(text) {
         const display = document.getElementById('countdown-display');
-        if (display) display.textContent = text;
+        if (display) display.innerHTML = `<span style="display:inline-flex;vertical-align:middle;margin-right:5px;">${I.clock(14)}</span>${text}`;
     }
 
     function startCountdown() {
@@ -1012,11 +1791,11 @@
 
             // 根据剩余时间显示不同的提示
             if (remainingSeconds <= 60 && remainingSeconds > 30) {
-                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (将在30秒时刷新页面)`);
+                updateCountdownDisplay(`倒计时: ${formatted} (将在30秒时刷新页面)`);
             } else if (remainingSeconds <= 30) {
-                updateCountdownDisplay(`⏰ 倒计时: ${formatted} (即将开始预约)`);
+                updateCountdownDisplay(`倒计时: ${formatted} (即将开始预约)`);
             } else {
-                updateCountdownDisplay(`⏰ 倒计时: ${formatted}`);
+                updateCountdownDisplay(`倒计时: ${formatted}`);
             }
             return true;
         };
@@ -1050,7 +1829,7 @@
             venue = document.getElementById('preferred-venue')?.value || '全部';
         }
 
-        CONFIG = {
+        CONFIG = normalizeConfig({
             USER_INFO: {
                 YYRGH: document.getElementById('user-id').value.trim(),
                 YYRXM: document.getElementById('user-name').value.trim()
@@ -1064,16 +1843,17 @@
             MAX_RETRY_TIMES: parseInt(document.getElementById('max-retry').value),
             REQUEST_TIMEOUT: parseInt(document.getElementById('request-timeout').value),
             YYLX: getYYLX(sport, campus)
-        };
+        });
 
         Storage.set('bookingConfig', CONFIG);
+        syncConfigToUI();
 
         updateProgress();
 
         addLog(`⚙️ 预约模式: ${CONFIG.YYLX === "2.0" ? "团体预约" : "单人散场"}`, 'info');
 
-        if (shouldShowVenueSelection(sport, campus) && venue !== '全部') {
-            addLog(`🏟️ 优先场馆: ${venue}`, 'info');
+        if (shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) && CONFIG.PREFERRED_VENUE !== '全部') {
+            addLog(`🏟️ 预约场馆: ${CONFIG.PREFERRED_VENUE}`, 'info');
         }
     }
 
@@ -1097,6 +1877,11 @@
         document.getElementById('display-interval').textContent = CONFIG.RETRY_INTERVAL;
         document.getElementById('display-retry').textContent = CONFIG.MAX_RETRY_TIMES;
         document.getElementById('display-timeout').textContent = CONFIG.REQUEST_TIMEOUT;
+
+        const venueDisplay = document.getElementById('venue-display');
+        if (venueDisplay) {
+            venueDisplay.style.display = shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) ? 'flex' : 'none';
+        }
     }
 
     function validateConfig() {
@@ -1117,10 +1902,20 @@
         const area = document.getElementById('status-area');
         if (!area) return;
 
-        const colors = { info: '#e3f2fd', success: '#c8e6c9', warning: '#fff3e0', error: '#ffcdd2' };
         const entry = document.createElement('div');
-        entry.style.cssText = `color:${colors[type]};margin-bottom:3px;border-left:3px solid ${colors[type]};padding-left:8px;`;
-        entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        entry.className = 'szu-log-entry';
+
+        const typeClasses = {
+            info: 'color:var(--szu-log-info-color);background:var(--szu-log-info-bg);border-left:3px solid var(--szu-log-info-border);',
+            success: 'color:var(--szu-log-success-color);background:var(--szu-log-success-bg);border-left:3px solid var(--szu-log-success-border);',
+            warning: 'color:var(--szu-log-warning-color);background:var(--szu-log-warning-bg);border-left:3px solid var(--szu-log-warning-border);',
+            error: 'color:var(--szu-log-error-color);background:var(--szu-log-error-bg);border-left:3px solid var(--szu-log-error-border);'
+        };
+
+        entry.style.cssText = `${typeClasses[type]}margin-bottom:6px;padding:4px 8px;border-radius:0 4px 4px 0;word-break:break-all;display:flex;align-items:flex-start;gap:0;`;
+
+        const timeStr = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        entry.innerHTML = `<span style="color:var(--szu-text-subtle);font-size:11px;margin-right:6px;flex-shrink:0;line-height:1.5;">[${timeStr}]</span><span style="display:flex;align-items:center;line-height:1.5;">${I.forLog(msg)}</span>`;
 
         area.appendChild(entry);
         area.scrollTop = area.scrollHeight;
@@ -1130,7 +1925,7 @@
 
     function updateProgress() {
         const el = document.getElementById('booking-progress');
-        if (el) el.textContent = `${successfulBookings.length}/${getMaxBookings()} 个时段`;
+        if (el) el.textContent = `${successfulBookings.length}/${getMaxBookings()}`;
     }
 
     // ==================== 网络请求 ====================
@@ -1240,7 +2035,7 @@
                     if (shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) && CONFIG.PREFERRED_VENUE !== "全部") {
                         const venueFilter = VENUE_CONFIG[CONFIG.SPORT]?.[CONFIG.CAMPUS]?.filter;
                         if (venueFilter && !venueFilter(fullName, CONFIG.PREFERRED_VENUE)) {
-                            return; // 如果不匹配优先场馆，则跳过
+                            return; // 如果不匹配预约场馆，则跳过
                         }
                     }
 
@@ -1418,8 +2213,10 @@
 
         const btn = document.getElementById('start-btn');
         if (btn) {
-            btn.textContent = '⏹️ 停止预约';
-            btn.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            btn.innerHTML = `${I.stop(15)} 停止预约`;
+            btn.style.background = 'var(--szu-btn-stop-bg)';
+            btn.style.borderColor = 'var(--szu-btn-stop-border, var(--szu-btn-stop-bg))';
+            btn.style.color = '#ffffff';
         }
 
         // 更新进度显示
@@ -1439,7 +2236,7 @@
         addLog(`⏰ 目标时段: ${CONFIG.PREFERRED_TIMES.join(', ')}`, 'info');
 
         if (shouldShowVenueSelection(CONFIG.SPORT, CONFIG.CAMPUS) && CONFIG.PREFERRED_VENUE !== "全部") {
-            addLog(`🏟️ 优先场馆: ${CONFIG.PREFERRED_VENUE}`, 'info');
+            addLog(`🏟️ 预约场馆: ${CONFIG.PREFERRED_VENUE}`, 'info');
         }
 
         try {
@@ -1522,8 +2319,10 @@
 
         const btn = document.getElementById('start-btn');
         if (btn) {
-            btn.textContent = '🚀 开始预约';
-            btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ee5a52)';
+            btn.innerHTML = `${I.play(15)} 开始预约`;
+            btn.style.background = 'var(--szu-btn-primary-bg)';
+            btn.style.borderColor = 'var(--szu-btn-primary-bg)';
+            btn.style.color = 'var(--szu-btn-primary-text)';
         }
 
         const max = getMaxBookings();
@@ -1564,12 +2363,16 @@
         if (Device.isMobile) MobileOptimization.init();
         SmartRetry.reset();
 
+        ThemeManager.init();
+
         // 删除这行，不要自动更新日期
         // CONFIG.TARGET_DATE = getTomorrowDate();
 
         floatingButton = createFloatingButton();
         controlPanel = createControlPanel();
         updateDisplayConfig();
+
+        ThemeManager.apply();
 
         // 删除这行，使用配置中的日期
         // document.getElementById('target-date').value = getTomorrowDate();
