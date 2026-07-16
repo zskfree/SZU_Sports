@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <title>SZU & HZAU Sports | 自动预约助手</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 不蒜子统计 -->
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
     <style>
         :root {
             --color-bg: #fafaf9;
@@ -297,6 +299,19 @@
             text-align: center;
         }
 
+        .footer-stats {
+            margin-top: 8px;
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: var(--color-text-subtle);
+            text-align: center;
+        }
+
+        .footer-stats-divider {
+            margin: 0 4px;
+            color: var(--color-text-subtle);
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -406,6 +421,14 @@
         <footer class="footer">
             <div style="margin-bottom:8px;">支持：深圳大学（SZU） / 华中农业大学（HZAU）</div>
             <div>由 ZSKFREE 开发 // 开源项目</div>
+            <div class="footer-stats">
+                <span id="busuanzi_container_site_pv" style="display:none">
+                    PV: <span id="busuanzi_value_site_pv"></span>
+                </span>
+                <span id="busuanzi_container_site_uv" style="display:none">
+                    <span class="footer-stats-divider">|</span>UV: <span id="busuanzi_value_site_uv"></span>
+                </span>
+            </div>
         </footer>
     </main>
 
